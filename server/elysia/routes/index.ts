@@ -1,0 +1,8 @@
+export { authRoutes } from "./auth.route"
+export { healthRoutes } from "./health.route"
+export { storeRoutes } from "./store.route"
+export { categoryRoutes } from "./category.route"
+export { productRoutes } from "./product.route"
+export { orderRoutes } from "./order.route"
+export { uploadRoutes } from "./upload.route"
+export { paymentRoutes } from "./payment.route"

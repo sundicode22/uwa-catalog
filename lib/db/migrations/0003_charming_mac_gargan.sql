@@ -1,0 +1,1 @@
+ALTER TABLE "stores" ADD COLUMN "currency" text DEFAULT 'USD' NOT NULL;

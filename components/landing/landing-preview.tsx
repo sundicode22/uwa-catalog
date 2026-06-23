@@ -1,0 +1,76 @@
+import Image from "next/image"
+import {
+  LANDING_PREVIEW_PRODUCTS,
+  landingImage,
+} from "@/lib/landing/images"
+import { cn } from "@/lib/utils"
+
+interface LandingPreviewProps {
+  className?: string
+}
+
+export function LandingPreview({ className }: LandingPreviewProps) {
+  return (
+    <div className={cn("relative w-full min-w-0", className)}>
+      <div className="absolute -inset-4 rounded-3xl bg-foreground/[0.03] blur-2xl" />
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-background shadow-[0_24px_80px_-24px_rgb(0_0_0/0.18)]">
+        <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-3">
+          <div className="flex gap-1.5">
+            <span className="size-2.5 rounded-full bg-border" />
+            <span className="size-2.5 rounded-full bg-border" />
+            <span className="size-2.5 rounded-full bg-border" />
+          </div>
+          <div className="mx-auto truncate rounded-md bg-background px-3 py-1 text-[11px] text-muted-foreground">
+            yourstore.com/c/main-store
+          </div>
+        </div>
+
+        <div className="space-y-4 p-4 sm:p-5 lg:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="relative size-9 overflow-hidden rounded-full border border-border lg:size-10">
+                <Image
+                  src={landingImage("store-logo", 80)}
+                  alt="Main Store"
+                  fill
+                  className="object-cover"
+                  sizes="40px"
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold lg:text-base">Main Store</p>
+                <p className="text-xs text-muted-foreground">Curated essentials</p>
+              </div>
+            </div>
+            <div className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+              Cart · 2
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:gap-3.5">
+            {LANDING_PREVIEW_PRODUCTS.map((product) => (
+              <div
+                key={product.name}
+                className="overflow-hidden rounded-xl border border-border bg-card"
+              >
+                <div className="relative aspect-square bg-muted">
+                  <Image
+                    src={landingImage(product.seed, 400)}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 180px"
+                  />
+                </div>
+                <div className="space-y-0.5 p-2.5 lg:p-3">
+                  <p className="truncate text-xs font-medium lg:text-sm">{product.name}</p>
+                  <p className="text-xs text-muted-foreground lg:text-sm">{product.price}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
