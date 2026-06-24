@@ -1,7 +1,8 @@
 import Stripe from "stripe"
 import { eq } from "drizzle-orm"
 import { db, users, userSubscriptions } from "@/lib/db"
-import { BILLING_PLANS, type SubscriptionPlan } from "@/lib/billing/plans"
+import { type SubscriptionPlan } from "@/lib/billing/plans"
+import { planService } from "@/server/services/billing/plan.service"
 import { AppError } from "@/server/elysia/plugins/errors"
 import { subscriptionService } from "@/server/services/subscription.service"
 
@@ -229,6 +230,7 @@ export const stripeBillingService = {
   },
 }
 
-export function formatPlanPriceUsd(plan: SubscriptionPlan) {
-  return BILLING_PLANS[plan].monthlyPriceUsd
+export async function formatPlanPriceUsd(plan: SubscriptionPlan) {
+  const definition = await planService.getPlan(plan)
+  return definition.monthlyPriceUsd
 }

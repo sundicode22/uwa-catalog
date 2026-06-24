@@ -1,13 +1,13 @@
 import { eq } from "drizzle-orm"
 import { success } from "@/server/lib/response"
 import { db, paymentProviderConfigs } from "@/lib/db"
-import { storeService } from "@/server/services"
+import { tenancyService } from "@/server/services/tenancy.service"
 import { requireAuth } from "../plugins/auth"
 
 export const paymentController = {
   async listByStore(userId: string | null, storeId: string) {
     const ownerId = requireAuth(userId)
-    await storeService.assertOwner(storeId, ownerId)
+    await tenancyService.assertStoreOwner(storeId, ownerId)
     const configs = await db
       .select()
       .from(paymentProviderConfigs)

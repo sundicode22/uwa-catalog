@@ -9,6 +9,9 @@ export interface PlanDefinition {
   maxStores: number
   maxProductsPerStore: number
   features: string[]
+  sortOrder?: number
+  isPopular?: boolean
+  isActive?: boolean
 }
 
 function readEnvInt(key: string, fallback: number) {
@@ -18,7 +21,7 @@ function readEnvInt(key: string, fallback: number) {
   return Number.isNaN(parsed) ? fallback : parsed
 }
 
-export const BILLING_PLANS: Record<SubscriptionPlan, PlanDefinition> = {
+export const DEFAULT_BILLING_PLANS: Record<SubscriptionPlan, PlanDefinition> = {
   free: {
     id: "free",
     name: "Free",
@@ -28,6 +31,9 @@ export const BILLING_PLANS: Record<SubscriptionPlan, PlanDefinition> = {
     maxStores: 1,
     maxProductsPerStore: 10,
     features: ["1 store", "10 products per store", "Basic storefront"],
+    sortOrder: 0,
+    isPopular: false,
+    isActive: true,
   },
   basic: {
     id: "basic",
@@ -38,6 +44,9 @@ export const BILLING_PLANS: Record<SubscriptionPlan, PlanDefinition> = {
     maxStores: 3,
     maxProductsPerStore: 100,
     features: ["3 stores", "100 products per store", "WhatsApp checkout"],
+    sortOrder: 1,
+    isPopular: true,
+    isActive: true,
   },
   premium: {
     id: "premium",
@@ -52,8 +61,14 @@ export const BILLING_PLANS: Record<SubscriptionPlan, PlanDefinition> = {
       "1000 products per store",
       "Premium storefront layouts",
     ],
+    sortOrder: 2,
+    isPopular: false,
+    isActive: true,
   },
 }
+
+/** @deprecated Use planService.getAllPlans() — kept for sync fallbacks in tests/scripts */
+export const BILLING_PLANS = DEFAULT_BILLING_PLANS
 
 export const PAID_PLANS = ["basic", "premium"] as const satisfies readonly SubscriptionPlan[]
 

@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { ChevronLeftIcon } from "lucide-react"
+import { BackLink } from "@/components/ui/back-link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -57,9 +59,12 @@ export function ForgotPasswordForm() {
         title="Check your email"
         description="If an account exists, we've sent password reset instructions."
       >
-        <Link href="/login">
-          <Button className="h-10 w-full">Back to login</Button>
-        </Link>
+        <Button asChild className="h-10 w-full">
+          <Link href="/login">
+            <ChevronLeftIcon className="size-4" />
+            Back to login
+          </Link>
+        </Button>
       </AuthCard>
     )
   }
@@ -91,11 +96,9 @@ export function ForgotPasswordForm() {
           </Button>
         </form>
       </Form>
-      <p className="mt-4 text-center text-sm text-muted-foreground">
-        <Link href="/login" className="hover:text-foreground">
-          Back to login
-        </Link>
-      </p>
+      <div className="mt-4 flex justify-center">
+        <BackLink href="/login">Back to login</BackLink>
+      </div>
     </AuthCard>
   )
 }

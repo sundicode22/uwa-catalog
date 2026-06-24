@@ -2,8 +2,8 @@ import { success } from "@/server/lib/response"
 import { serializeStore } from "@/server/lib/serializers"
 import { storeService } from "@/server/services"
 import { subscriptionService } from "@/server/services/subscription.service"
+import { tenancyService } from "@/server/services/tenancy.service"
 import { requireAuth } from "../plugins/auth"
-import { forbidden } from "../plugins/errors"
 import type { CreateStoreInput, UpdateStoreInput } from "@/types/domain"
 
 export const storeController = {
@@ -34,8 +34,7 @@ export const storeController = {
 
   async getById(userId: string | null, storeId: string) {
     const ownerId = requireAuth(userId)
-    const store = await storeService.getById(storeId)
-    if (store.ownerId !== ownerId) forbidden("Access denied")
+    const store = await tenancyService.getOwnedStore(storeId, ownerId)
     return success(serializeStore(store))
   },
 

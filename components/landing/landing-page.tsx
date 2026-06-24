@@ -1,4 +1,5 @@
 import type { Session } from "next-auth"
+import type { PlanDefinition } from "@/types/domain"
 import { LandingCta } from "./landing-cta"
 import { LandingFaq } from "./landing-faq"
 import { LandingFeatures } from "./landing-features"
@@ -13,9 +14,10 @@ import { LandingTestimonials } from "./landing-testimonials"
 
 interface LandingPageProps {
   session: Session | null
+  plans: PlanDefinition[]
 }
 
-export function LandingPage({ session }: LandingPageProps) {
+export function LandingPage({ session, plans }: LandingPageProps) {
   const isLoggedIn = !!session?.user
 
   return (
@@ -42,7 +44,7 @@ export function LandingPage({ session }: LandingPageProps) {
         <LandingFeatures />
         <LandingHighlights />
         <LandingSteps />
-        <LandingPricing isLoggedIn={isLoggedIn} />
+        <LandingPricing isLoggedIn={isLoggedIn} plans={plans} />
         <LandingTestimonials />
         <LandingFaq />
         <LandingCta isLoggedIn={isLoggedIn} />

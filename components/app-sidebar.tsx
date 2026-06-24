@@ -7,6 +7,8 @@ import {
   PackageIcon,
   FolderTreeIcon,
   ShoppingCartIcon,
+  UsersIcon,
+  ReceiptIcon,
   SettingsIcon,
   StoreIcon,
   CreditCardIcon,
@@ -51,6 +53,18 @@ const navItems = [
     title: "Orders",
     url: "/dashboard/orders",
     icon: <ShoppingCartIcon />,
+    items: [],
+  },
+  {
+    title: "Customers",
+    url: "/dashboard/customers",
+    icon: <UsersIcon />,
+    items: [],
+  },
+  {
+    title: "Transactions",
+    url: "/dashboard/transactions",
+    icon: <ReceiptIcon />,
     items: [],
   },
   {

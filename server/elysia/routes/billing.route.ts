@@ -10,10 +10,44 @@ const verifyBody = t.Object({
   reference: t.String(),
 })
 
+const planIdParams = t.Object({
+  planId: t.Union([
+    t.Literal("free"),
+    t.Literal("basic"),
+    t.Literal("premium"),
+  ]),
+})
+
+const updatePlanBody = t.Object({
+  name: t.Optional(t.String()),
+  description: t.Optional(t.String()),
+  monthlyPriceUsd: t.Optional(t.Number()),
+  monthlyPriceXaf: t.Optional(t.Number()),
+  maxStores: t.Optional(t.Number()),
+  maxProductsPerStore: t.Optional(t.Number()),
+  features: t.Optional(t.Array(t.String())),
+  sortOrder: t.Optional(t.Number()),
+  isPopular: t.Optional(t.Boolean()),
+  isActive: t.Optional(t.Boolean()),
+})
+
 export const billingRoutes = new Elysia()
   .use(authPlugin)
-  .get("/billing", ({ userId }) =>
-    billingController.getSummary(requireAuth(userId))
+  .get("/billing/plans", () => billingController.getPlans())
+  .get("/billing", ({ userId, session }) =>
+    billingController.getSummary(
+      requireAuth(userId),
+      session?.user?.email
+    )
+  )
+  .get("/billing/admin/plans", ({ session }) =>
+    billingController.getAdminPlans(session?.user?.email)
+  )
+  .patch(
+    "/billing/admin/plans/:planId",
+    ({ session, params, body }) =>
+      billingController.updatePlan(session?.user?.email, params.planId, body),
+    { params: planIdParams, body: updatePlanBody }
   )
   .post(
     "/billing/stripe/checkout",

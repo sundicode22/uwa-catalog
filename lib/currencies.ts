@@ -5,6 +5,7 @@ export const STORE_CURRENCIES = [
   { code: "CAD", label: "Canadian Dollar (CAD)" },
   { code: "AUD", label: "Australian Dollar (AUD)" },
   { code: "NGN", label: "Nigerian Naira (NGN)" },
+  { code: "XAF", label: "Central African CFA Franc (XAF)" },
   { code: "GHS", label: "Ghanaian Cedi (GHS)" },
   { code: "KES", label: "Kenyan Shilling (KES)" },
   { code: "ZAR", label: "South African Rand (ZAR)" },

@@ -1,10 +1,7 @@
 import { count, eq } from "drizzle-orm"
 import { db, products, stores, userSubscriptions } from "@/lib/db"
-import {
-  BILLING_PLANS,
-  getPlanLimits,
-  type SubscriptionPlan,
-} from "@/lib/billing/plans"
+import { type SubscriptionPlan } from "@/lib/billing/plans"
+import { planService } from "@/server/services/billing/plan.service"
 import { AppError } from "@/server/elysia/plugins/errors"
 
 export type SubscriptionStatus = "active" | "past_due" | "canceled"
@@ -86,6 +83,8 @@ export const subscriptionService = {
       subscription.currentPeriodEnd
     )
     const usage = await subscriptionService.getUsage(userId)
+    const plans = await planService.getAllPlans()
+    const limits = await planService.getPlanLimits(plan)
 
     return {
       subscription: {
@@ -97,22 +96,23 @@ export const subscriptionService = {
         updatedAt: subscription.updatedAt.toISOString(),
       },
       usage,
-      plans: Object.values(BILLING_PLANS),
-      limits: getPlanLimits(plan),
+      plans,
+      limits,
     }
   },
 
-  planLimitError(
+  async planLimitError(
     resource: "stores" | "products",
     plan: SubscriptionPlan,
     limit: number,
     usage: number
-  ): never {
+  ): Promise<never> {
+    const definition = await planService.getPlan(plan)
     throw new AppError(
       "PLAN_LIMIT",
       resource === "stores"
-        ? `Your ${BILLING_PLANS[plan].name} plan allows up to ${limit} store${limit === 1 ? "" : "s"}. Upgrade to add more.`
-        : `Your ${BILLING_PLANS[plan].name} plan allows up to ${limit} products per store. Upgrade to add more.`,
+        ? `Your ${definition.name} plan allows up to ${limit} store${limit === 1 ? "" : "s"}. Upgrade to add more.`
+        : `Your ${definition.name} plan allows up to ${limit} products per store. Upgrade to add more.`,
       402,
       {
         resource: [resource],
@@ -125,22 +125,22 @@ export const subscriptionService = {
 
   async assertCanCreateStore(userId: string) {
     const plan = await subscriptionService.getEffectivePlan(userId)
-    const { maxStores } = getPlanLimits(plan)
+    const { maxStores } = await planService.getPlanLimits(plan)
     const { storeCount } = await subscriptionService.getUsage(userId)
 
     if (storeCount >= maxStores) {
-      subscriptionService.planLimitError("stores", plan, maxStores, storeCount)
+      await subscriptionService.planLimitError("stores", plan, maxStores, storeCount)
     }
   },
 
   async assertCanCreateProduct(userId: string, storeId: string) {
     const plan = await subscriptionService.getEffectivePlan(userId)
-    const { maxProductsPerStore } = getPlanLimits(plan)
+    const { maxProductsPerStore } = await planService.getPlanLimits(plan)
     const usage = await subscriptionService.getUsage(userId)
     const productCount = usage.productsByStore[storeId] ?? 0
 
     if (productCount >= maxProductsPerStore) {
-      subscriptionService.planLimitError(
+      await subscriptionService.planLimitError(
         "products",
         plan,
         maxProductsPerStore,

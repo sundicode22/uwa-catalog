@@ -1,24 +1,56 @@
 import { createHmac, timingSafeEqual } from "crypto"
 import { and, eq } from "drizzle-orm"
 import { billingCustomers, billingTransactions, db, users } from "@/lib/db"
-import { BILLING_PLANS, type SubscriptionPlan } from "@/lib/billing/plans"
+import { type SubscriptionPlan } from "@/lib/billing/plans"
+import { planService } from "@/server/services/billing/plan.service"
 import { AppError } from "@/server/elysia/plugins/errors"
 import { subscriptionService } from "@/server/services/subscription.service"
-import { NotchPayAPI, normalizeNotchPayPayment } from "./notchpay-sdk"
+
+const DEFAULT_NOTCHPAY_API_URL = "https://api.notchpay.co"
+
+type NotchPayTransaction = {
+  id?: string
+  reference?: string
+  status?: string
+  currency?: string
+  amount?: number
+  customer?: {
+    id?: string
+    email?: string
+    name?: string
+  }
+  payment_method?: string
+}
+
+type NotchPayPaymentResponse = {
+  authorization_url?: string
+  authorizationUrl?: string
+  transaction?: NotchPayTransaction
+  payment?: {
+    authorization_url?: string
+    transaction?: NotchPayTransaction
+  }
+  data?: NotchPayTransaction & {
+    authorization_url?: string
+  }
+  message?: string
+  error?: { message?: string }
+  code?: number | string
+}
+
+const getApiUrl = () =>
+  (process.env.NOTCHPAY_API_URL ?? DEFAULT_NOTCHPAY_API_URL).replace(/\/$/, "")
 
 const appUrl = () => {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 }
 
-const getSecretKey = () => {
-  const key =
-    process.env.NOTCHPAY_PRIVATE_KEY ??
-    process.env.NOTCHPAY_SECRET_KEY ??
-    process.env.NOTCHPAY_PUBLIC_KEY
+const getPublicKey = () => {
+  const key = process.env.NOTCHPAY_PUBLIC_KEY
   if (!key) {
     throw new AppError(
       "NOTCHPAY_NOT_CONFIGURED",
-      "NotchPay secret key is not configured",
+      "NotchPay public key is not configured",
       503
     )
   }
@@ -29,9 +61,85 @@ const getWebhookSecret = () => {
   return process.env.NOTCHPAY_WEBHOOK_SECRET ?? process.env.NOTCHPAY_HASH_SECRET
 }
 
-const getNotchPay = () => {
-  return new NotchPayAPI(getSecretKey())
+const normalizeNotchPayPayment = (payload: NotchPayPaymentResponse) => {
+  const transaction =
+    payload.transaction ??
+    payload.payment?.transaction ??
+    (payload.data
+      ? {
+          id: payload.data.id,
+          reference: payload.data.reference,
+          status: payload.data.status,
+          currency: payload.data.currency,
+          amount: payload.data.amount,
+          customer:
+            typeof payload.data.customer === "string"
+              ? { id: payload.data.customer }
+              : payload.data.customer,
+          payment_method: payload.data.payment_method,
+        }
+      : null)
+  const authorizationUrl =
+    payload.authorization_url ??
+    payload.authorizationUrl ??
+    payload.payment?.authorization_url ??
+    payload.data?.authorization_url ??
+    null
+
+  return { transaction, authorizationUrl, raw: payload }
 }
+
+const notchpayFetch = async (
+  path: string,
+  init: RequestInit
+): Promise<NotchPayPaymentResponse> => {
+  const response = await fetch(`${getApiUrl()}${path}`, {
+    ...init,
+    headers: {
+      Authorization: getPublicKey(),
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
+  })
+
+  let data: NotchPayPaymentResponse = {}
+  try {
+    data = (await response.json()) as NotchPayPaymentResponse
+  } catch {
+    data = {}
+  }
+
+  const responseCode =
+    typeof data.code === "string" ? Number.parseInt(data.code, 10) : data.code
+
+  if (!response.ok || (responseCode && (responseCode < 200 || responseCode >= 300))) {
+    throw new AppError(
+      "NOTCHPAY_ERROR",
+      data.message ??
+        data.error?.message ??
+        `NotchPay request failed (${response.status})`,
+      502
+    )
+  }
+
+  return data
+}
+
+const createNotchPayPayment = (input: {
+  amount: number
+  currency: string
+  customer: { email: string; name?: string; phone?: string }
+  reference: string
+  callback: string
+  description: string
+}) =>
+  notchpayFetch("/payments", {
+    method: "POST",
+    body: JSON.stringify(input),
+  })
+
+const retrieveNotchPayPayment = (reference: string) =>
+  notchpayFetch(`/payments/${encodeURIComponent(reference)}`, { method: "GET" })
 
 const parseSubscriptionReference = (reference: string) => {
   const match = /^sub_([^_]+)_([^_]+)_(\d+)$/.exec(reference)
@@ -86,7 +194,8 @@ const processPaymentResult = async (
   const { transaction, authorizationUrl } = normalizeNotchPayPayment(payment)
   const paymentReference = transaction?.reference ?? reference
   const status = mapTransactionStatus(transaction?.status)
-  const amount = transaction?.amount ?? BILLING_PLANS[plan].monthlyPriceXaf
+  const planDefinition = await planService.getPlan(plan)
+  const amount = transaction?.amount ?? planDefinition.monthlyPriceXaf
   const currency = transaction?.currency ?? "XAF"
 
   await notchpayBillingService.upsertCustomer({
@@ -247,19 +356,19 @@ export const notchpayBillingService = {
       throw new AppError("NOT_FOUND", "User not found", 404)
     }
 
-    const amount = BILLING_PLANS[plan].monthlyPriceXaf
+    const planDefinition = await planService.getPlan(plan)
+    const amount = planDefinition.monthlyPriceXaf
     const reference = `sub_${userId}_${plan}_${Date.now()}`
     const callback = `${appUrl()}/dashboard/billing?checkout=notchpay&reference=${encodeURIComponent(reference)}`
-    const notchpay = getNotchPay()
 
-    const payment = await notchpay.payments.create({
+    const payment = await createNotchPayPayment({
       amount,
       currency: "XAF",
       customer: {
         name: user.name ?? user.email,
         email: user.email,
       },
-      description: `${BILLING_PLANS[plan].name} plan subscription`,
+      description: `${planDefinition.name} plan subscription`,
       reference,
       callback,
     })
@@ -314,12 +423,12 @@ export const notchpayBillingService = {
       throw new AppError("FORBIDDEN", "Payment does not belong to this account", 403)
     }
 
-    const payment = await getNotchPay().payments.retrieve(reference)
+    const payment = await retrieveNotchPayPayment(reference)
     return processPaymentResult(reference, userId, parsed.plan, payment)
   },
 
   async getPayment(reference: string) {
-    return getNotchPay().payments.retrieve(reference)
+    return retrieveNotchPayPayment(reference)
   },
 
   async handleWebhook(rawBody: string, signature: string | null) {

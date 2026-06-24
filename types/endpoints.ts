@@ -3,6 +3,12 @@ import type {
   CreateOrderInput,
   CreateProductInput,
   CreateStoreInput,
+  CreateStoreCustomerInput,
+  UpdateStoreCustomerInput,
+  CustomerListQuery,
+  StoreCustomer,
+  StoreTransactionListItem,
+  TransactionListQuery,
   DashboardStats,
   Order,
   Category,
@@ -23,9 +29,11 @@ import type {
   ForgotPasswordInput,
   ResetPasswordInput,
   BillingSummary,
+  BillingPlansResponse,
   CheckoutSessionResult,
   NotchPayVerifyResult,
   AccountSubscriptionPlan,
+  PlanDefinition,
 } from "./domain"
 import type { PaginationQuery, Paginated } from "./api"
 
@@ -105,6 +113,31 @@ export interface ApiEndpoints {
     response: Order
   }
 
+  "GET /stores/:storeId/customers": {
+    params: { storeId: string }
+    query?: CustomerListQuery
+    response: Paginated<StoreCustomer>
+  }
+  "GET /customers/:customerId": {
+    params: { customerId: string }
+    response: StoreCustomer
+  }
+  "POST /customers": {
+    body: CreateStoreCustomerInput
+    response: StoreCustomer
+  }
+  "PATCH /customers/:customerId": {
+    params: { customerId: string }
+    body: UpdateStoreCustomerInput
+    response: StoreCustomer
+  }
+
+  "GET /stores/:storeId/transactions": {
+    params: { storeId: string }
+    query?: TransactionListQuery
+    response: Paginated<StoreTransactionListItem>
+  }
+
   "POST /uploads": {
     response: UploadResult
   }
@@ -114,7 +147,25 @@ export interface ApiEndpoints {
     response: PaymentProviderConfig[]
   }
 
+  "GET /billing/plans": { response: BillingPlansResponse }
   "GET /billing": { response: BillingSummary }
+  "GET /billing/admin/plans": { response: BillingPlansResponse }
+  "PATCH /billing/admin/plans/:planId": {
+    params: { planId: AccountSubscriptionPlan }
+    body: {
+      name?: string
+      description?: string
+      monthlyPriceUsd?: number
+      monthlyPriceXaf?: number
+      maxStores?: number
+      maxProductsPerStore?: number
+      features?: string[]
+      sortOrder?: number
+      isPopular?: boolean
+      isActive?: boolean
+    }
+    response: { plan: PlanDefinition }
+  }
   "POST /billing/stripe/checkout": {
     body: { plan: Exclude<AccountSubscriptionPlan, "free"> }
     response: CheckoutSessionResult

@@ -34,7 +34,7 @@ export function useCreateOrder(storeId?: string) {
   const keys = storeId ? storeQueryKeys(storeId) : null
   return useApiMutation("POST /orders", "POST", {
     successMessage: "Order saved successfully",
-    invalidateKeys: keys ? [keys.orders, keys.stats] : [],
+    invalidateKeys: keys ? [keys.orders, keys.stats, keys.customers, keys.transactions] : [],
   })
 }
 
@@ -43,6 +43,6 @@ export function useUpdateOrderStatus() {
   const keys = store ? storeQueryKeys(store.id) : null
   return useApiMutation("PATCH /orders/:id/status", "PATCH", {
     successMessage: "Order status updated",
-    invalidateKeys: keys ? [keys.orders, keys.stats] : [],
+    invalidateKeys: keys ? [keys.orders, keys.stats, keys.customers, keys.transactions] : [],
   })
 }

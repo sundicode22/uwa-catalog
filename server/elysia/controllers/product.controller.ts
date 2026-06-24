@@ -10,8 +10,12 @@ import type {
 } from "@/types/domain"
 
 export const productController = {
-  async list(storeId: string, query: ProductListQuery) {
-    const result = await productService.list(storeId, query)
+  async list(
+    storeId: string,
+    query: ProductListQuery,
+    userId: string | null
+  ) {
+    const result = await productService.list(storeId, query, userId)
     return success(result.items, result.meta)
   },
 

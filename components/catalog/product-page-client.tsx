@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
-import { ArrowLeftIcon } from "lucide-react"
+import { BackLink } from "@/components/ui/back-link"
 import { Button } from "@/components/ui/button"
 import { ProductOptionsModal } from "@/components/catalog/product-options-modal"
 import { StorefrontFooter } from "@/components/catalog/storefront-footer"
@@ -50,17 +49,16 @@ export function ProductPageClient({
       {premium ? <StorefrontHeader store={store} /> : null}
 
       <div className={premium ? "mx-auto max-w-7xl px-4 py-6" : "mb-6"}>
-        <Link
+        <BackLink
           href={premium ? `/c/${store.slug}#shop` : `/c/${store.slug}`}
           className={
             premium
-              ? "inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground"
-              : "text-sm text-muted-foreground hover:text-foreground"
+              ? "text-foreground/70 hover:text-foreground"
+              : undefined
           }
         >
-          {premium ? <ArrowLeftIcon className="size-4" /> : null}
-          {premium ? "Back to shop" : "← Back to catalog"}
-        </Link>
+          {premium ? "Back to shop" : "Back to catalog"}
+        </BackLink>
       </div>
 
       <main

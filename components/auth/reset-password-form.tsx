@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { BackLink } from "@/components/ui/back-link"
 import { useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -148,11 +149,9 @@ export function ResetPasswordForm() {
         </form>
       </Form>
 
-      <p className="mt-4 text-center text-sm text-muted-foreground">
-        <Link href="/login" className="hover:text-foreground">
-          Back to login
-        </Link>
-      </p>
+      <div className="mt-4 flex justify-center">
+        <BackLink href="/login">Back to login</BackLink>
+      </div>
     </AuthCard>
   )
 }

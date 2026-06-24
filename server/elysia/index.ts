@@ -11,6 +11,8 @@ import {
   uploadRoutes,
   paymentRoutes,
   billingRoutes,
+  customerRoutes,
+  transactionRoutes,
 } from "./routes"
 
 export const app = new Elysia({ prefix: "/api" })
@@ -25,5 +27,7 @@ export const app = new Elysia({ prefix: "/api" })
   .use(uploadRoutes)
   .use(paymentRoutes)
   .use(billingRoutes)
+  .use(customerRoutes)
+  .use(transactionRoutes)
 
 export type App = typeof app

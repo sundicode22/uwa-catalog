@@ -27,6 +27,15 @@ export const orderStatusEnum = pgEnum("order_status", [
   "cancelled",
 ])
 export const orderSourceEnum = pgEnum("order_source", ["whatsapp", "checkout"])
+export const storeTransactionTypeEnum = pgEnum("store_transaction_type", [
+  "sale",
+  "refund",
+])
+export const storeTransactionStatusEnum = pgEnum("store_transaction_status", [
+  "pending",
+  "completed",
+  "voided",
+])
 export const storefrontTierEnum = pgEnum("storefront_tier", ["basic", "premium"])
 export const subscriptionPlanEnum = pgEnum("subscription_plan", ["free", "basic", "premium"])
 export const subscriptionStatusEnum = pgEnum("subscription_status", [
@@ -114,6 +123,21 @@ export const billingCustomers = pgTable(
     ),
   ]
 )
+
+export const billingPlanDefinitions = pgTable("billing_plan_definitions", {
+  id: subscriptionPlanEnum("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  monthlyPriceUsd: integer("monthly_price_usd").notNull(),
+  monthlyPriceXaf: integer("monthly_price_xaf").notNull(),
+  maxStores: integer("max_stores").notNull(),
+  maxProductsPerStore: integer("max_products_per_store").notNull(),
+  features: jsonb("features").$type<string[]>().notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isPopular: boolean("is_popular").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+})
 
 export const billingTransactions = pgTable(
   "billing_transactions",
@@ -374,6 +398,38 @@ export const productModifierOptions = pgTable(
   (table) => [index("product_modifier_options_group_idx").on(table.groupId)]
 )
 
+export const storeCustomers = pgTable(
+  "store_customers",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    phoneNormalized: text("phone_normalized").notNull(),
+    email: text("email"),
+    address: text("address"),
+    city: text("city"),
+    region: text("region"),
+    notes: text("notes"),
+    totalOrders: integer("total_orders").default(0).notNull(),
+    totalSpent: text("total_spent").default("0").notNull(),
+    lastOrderAt: timestamp("last_order_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("store_customers_store_phone_idx").on(
+      table.storeId,
+      table.phoneNormalized
+    ),
+    index("store_customers_store_idx").on(table.storeId),
+  ]
+)
+
 export const orders = pgTable(
   "orders",
   {
@@ -383,6 +439,9 @@ export const orders = pgTable(
     storeId: text("store_id")
       .notNull()
       .references(() => stores.id, { onDelete: "cascade" }),
+    customerId: text("customer_id").references(() => storeCustomers.id, {
+      onDelete: "set null",
+    }),
     customerName: text("customer_name").notNull(),
     customerPhone: text("customer_phone").notNull(),
     total: text("total").notNull(),
@@ -391,7 +450,42 @@ export const orders = pgTable(
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   },
-  (table) => [index("orders_store_idx").on(table.storeId)]
+  (table) => [
+    index("orders_store_idx").on(table.storeId),
+    index("orders_customer_idx").on(table.customerId),
+  ]
+)
+
+export const storeTransactions = pgTable(
+  "store_transactions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    orderId: text("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    customerId: text("customer_id")
+      .notNull()
+      .references(() => storeCustomers.id, { onDelete: "cascade" }),
+    type: storeTransactionTypeEnum("type").default("sale").notNull(),
+    status: storeTransactionStatusEnum("status").default("pending").notNull(),
+    amount: text("amount").notNull(),
+    currency: text("currency").notNull(),
+    paymentMethod: text("payment_method"),
+    reference: text("reference"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("store_transactions_order_idx").on(table.orderId),
+    index("store_transactions_store_idx").on(table.storeId),
+    index("store_transactions_customer_idx").on(table.customerId),
+  ]
 )
 
 export const orderItems = pgTable(

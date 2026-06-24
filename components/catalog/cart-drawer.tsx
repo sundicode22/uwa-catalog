@@ -40,6 +40,10 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     useCart()
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
+  const [customerEmail, setCustomerEmail] = useState("")
+  const [customerAddress, setCustomerAddress] = useState("")
+  const [customerCity, setCustomerCity] = useState("")
+  const [showOptionalDetails, setShowOptionalDetails] = useState(false)
   const createOrder = useCreateOrder(store.id)
   const isWhatsAppMode = store.orderMode === "whatsapp"
 
@@ -113,6 +117,9 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
         storeId: store.id,
         customerName,
         customerPhone,
+        customerEmail: customerEmail || undefined,
+        customerAddress: customerAddress || undefined,
+        customerCity: customerCity || undefined,
         items: orderItems,
         source: isWhatsAppMode ? "whatsapp" : "checkout",
       },
@@ -133,6 +140,10 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     setCartOpen(false)
     setCustomerName("")
     setCustomerPhone("")
+    setCustomerEmail("")
+    setCustomerAddress("")
+    setCustomerCity("")
+    setShowOptionalDetails(false)
   }
 
   return (
@@ -278,6 +289,38 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                 value={customerPhone}
                 onChange={(value) => setCustomerPhone(value ?? "")}
               />
+              <button
+                type="button"
+                className="text-left text-sm text-primary underline-offset-4 hover:underline"
+                onClick={() => setShowOptionalDetails((open) => !open)}
+              >
+                {showOptionalDetails
+                  ? "Hide optional details"
+                  : "Add email or delivery details (optional)"}
+              </button>
+              {showOptionalDetails ? (
+                <div className="space-y-3">
+                  <FormInput
+                    className="bg-background"
+                    type="email"
+                    placeholder="Email (optional)"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                  />
+                  <FormInput
+                    className="bg-background"
+                    placeholder="Address (optional)"
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                  />
+                  <FormInput
+                    className="bg-background"
+                    placeholder="City (optional)"
+                    value={customerCity}
+                    onChange={(e) => setCustomerCity(e.target.value)}
+                  />
+                </div>
+              ) : null}
               <div className="flex items-center justify-between font-semibold">
                 <span className="flex items-center gap-2">
                   <ReceiptIcon className="size-4 text-muted-foreground" />

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { AlertCircleIcon, ArrowLeftIcon } from "lucide-react"
+import { AlertCircleIcon, ChevronLeftIcon } from "lucide-react"
 import { AuthCard } from "@/components/auth/auth-card"
 import { Button } from "@/components/ui/button"
 import { getAuthErrorContent } from "@/lib/auth/errors"
@@ -24,7 +24,7 @@ export function AuthErrorView() {
         <div className="flex flex-col gap-2">
           <Button asChild className="h-10 w-full">
             <Link href="/login">
-              <ArrowLeftIcon className="size-4" />
+              <ChevronLeftIcon className="size-4" />
               Back to login
             </Link>
           </Button>

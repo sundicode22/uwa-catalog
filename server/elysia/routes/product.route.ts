@@ -5,7 +5,7 @@ import { createProductBody, updateProductBody } from "../schemas/product"
 
 export const productRoutes = new Elysia()
   .use(authPlugin)
-  .get("/stores/:storeId/products", ({ params, query }) =>
+  .get("/stores/:storeId/products", ({ params, query, userId }) =>
     productController.list(params.storeId, {
       page: query.page ? Number(query.page) : 1,
       limit: query.limit ? Number(query.limit) : 10,
@@ -23,7 +23,7 @@ export const productRoutes = new Elysia()
           : query.isFeatured === "false"
             ? false
             : undefined,
-    })
+    }, userId)
   )
   .get("/products/:id", ({ params }) => productController.getById(params.id))
   .get("/products/:id/options", ({ params }) =>

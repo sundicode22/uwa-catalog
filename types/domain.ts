@@ -143,6 +143,7 @@ export interface OrderItem {
 export interface Order {
   id: string
   storeId: string
+  customerId: string | null
   customerName: string
   customerPhone: string
   items: OrderItem[]
@@ -151,6 +152,92 @@ export interface Order {
   source: OrderSource
   createdAt: string
   updatedAt: string
+}
+
+export type StoreTransactionType = "sale" | "refund"
+export type StoreTransactionStatus = "pending" | "completed" | "voided"
+
+export interface StoreCustomer {
+  id: string
+  storeId: string
+  name: string
+  phone: string
+  email: string | null
+  address: string | null
+  city: string | null
+  region: string | null
+  notes: string | null
+  totalOrders: number
+  totalSpent: string
+  lastOrderAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StoreTransaction {
+  id: string
+  storeId: string
+  orderId: string
+  customerId: string
+  type: StoreTransactionType
+  status: StoreTransactionStatus
+  amount: string
+  currency: string
+  paymentMethod: string | null
+  reference: string | null
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StoreTransactionListItem extends StoreTransaction {
+  customerName: string
+  customerPhone: string
+}
+
+export interface TransactionListQuery {
+  page?: number
+  limit?: number
+  search?: string
+  status?: StoreTransactionStatus
+}
+
+export interface CustomerListQuery {
+  page?: number
+  limit?: number
+  search?: string
+}
+
+export interface CreateStoreCustomerInput {
+  storeId: string
+  name: string
+  phone: string
+  email?: string
+  address?: string
+  city?: string
+  region?: string
+  notes?: string
+}
+
+export interface UpdateStoreCustomerInput {
+  name?: string
+  phone?: string
+  email?: string | null
+  address?: string | null
+  city?: string | null
+  region?: string | null
+  notes?: string | null
+}
+
+export interface UpsertStoreCustomerInput {
+  name: string
+  phone: string
+  email?: string
+  address?: string
+  city?: string
+  region?: string
+  notes?: string
+  orderTotal: string
 }
 
 export interface StoreWithCategories extends Store {
@@ -239,6 +326,11 @@ export interface CreateOrderInput {
   storeId: string
   customerName: string
   customerPhone: string
+  customerEmail?: string
+  customerAddress?: string
+  customerCity?: string
+  customerRegion?: string
+  customerNotes?: string
   items: OrderItem[]
   source?: OrderSource
 }
@@ -322,6 +414,9 @@ export interface PlanDefinition {
   maxStores: number
   maxProductsPerStore: number
   features: string[]
+  sortOrder?: number
+  isPopular?: boolean
+  isActive?: boolean
 }
 
 export interface UserSubscription {
@@ -354,6 +449,11 @@ export interface BillingSummary {
   usage: BillingUsage
   plans: PlanDefinition[]
   limits: BillingLimits
+  canManagePlans?: boolean
+}
+
+export interface BillingPlansResponse {
+  plans: PlanDefinition[]
 }
 
 export interface CheckoutSessionResult {

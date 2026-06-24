@@ -1,4 +1,4 @@
-import type { categories, products, stores, orders } from "@/lib/db"
+import type { categories, products, stores, orders, storeCustomers, storeTransactions } from "@/lib/db"
 import type { OrderItem, ProductOptionCounts } from "@/types/domain"
 
 export function serializeStore(store: typeof stores.$inferSelect) {
@@ -57,6 +57,7 @@ export function serializeOrder(
   return {
     id: order.id,
     storeId: order.storeId,
+    customerId: order.customerId,
     customerName: order.customerName,
     customerPhone: order.customerPhone,
     items,
@@ -65,5 +66,50 @@ export function serializeOrder(
     source: order.source,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
+  }
+}
+
+export function serializeStoreCustomer(
+  customer: typeof storeCustomers.$inferSelect
+) {
+  return {
+    id: customer.id,
+    storeId: customer.storeId,
+    name: customer.name,
+    phone: customer.phone,
+    email: customer.email,
+    address: customer.address,
+    city: customer.city,
+    region: customer.region,
+    notes: customer.notes,
+    totalOrders: customer.totalOrders,
+    totalSpent: customer.totalSpent,
+    lastOrderAt: customer.lastOrderAt?.toISOString() ?? null,
+    createdAt: customer.createdAt.toISOString(),
+    updatedAt: customer.updatedAt.toISOString(),
+  }
+}
+
+export function serializeStoreTransaction(
+  transaction: typeof storeTransactions.$inferSelect,
+  customer?: { name: string; phone: string }
+) {
+  return {
+    id: transaction.id,
+    storeId: transaction.storeId,
+    orderId: transaction.orderId,
+    customerId: transaction.customerId,
+    type: transaction.type,
+    status: transaction.status,
+    amount: transaction.amount,
+    currency: transaction.currency,
+    paymentMethod: transaction.paymentMethod,
+    reference: transaction.reference,
+    notes: transaction.notes,
+    createdAt: transaction.createdAt.toISOString(),
+    updatedAt: transaction.updatedAt.toISOString(),
+    ...(customer
+      ? { customerName: customer.name, customerPhone: customer.phone }
+      : {}),
   }
 }

@@ -5,6 +5,9 @@ import { formatSelectionsLabel } from "@/lib/product-options"
 import { productOptionsService } from "./product-options.service"
 import { orderItemsService } from "./order-items.service"
 import { subscriptionService } from "./subscription.service"
+import { tenancyService } from "./tenancy.service"
+import { customerService } from "./customer.service"
+import { storeTransactionService } from "./store-transaction.service"
 import { serializeOrder } from "@/server/lib/serializers"
 import { notFound, forbidden, badRequest } from "@/server/elysia/plugins/errors"
 import type {
@@ -85,9 +88,7 @@ export const storeService = {
   },
 
   async assertOwner(storeId: string, userId: string) {
-    const store = await storeService.getById(storeId)
-    if (store.ownerId !== userId) forbidden("You do not own this store")
-    return store
+    return tenancyService.getOwnedStore(storeId, userId)
   },
 
   async getStats(storeId: string, ownerId: string) {
@@ -207,7 +208,7 @@ export const categoryService = {
   },
 
   async create(userId: string, input: CreateCategoryInput) {
-    await storeService.assertOwner(input.storeId, userId)
+    await tenancyService.assertStoreOwner(input.storeId, userId)
     let slug = slugify(input.name)
     const [category] = await db
       .insert(categories)
@@ -221,12 +222,7 @@ export const categoryService = {
   },
 
   async update(id: string, userId: string, input: UpdateCategoryInput) {
-    const [existing] = await db
-      .select()
-      .from(categories)
-      .where(eq(categories.id, id))
-    if (!existing) notFound("Category not found")
-    await storeService.assertOwner(existing.storeId, userId)
+    await tenancyService.assertCategoryOwner(id, userId)
 
     const [category] = await db
       .update(categories)
@@ -241,19 +237,26 @@ export const categoryService = {
   },
 
   async delete(id: string, userId: string) {
-    const [existing] = await db
-      .select()
-      .from(categories)
-      .where(eq(categories.id, id))
-    if (!existing) notFound("Category not found")
-    await storeService.assertOwner(existing.storeId, userId)
+    await tenancyService.assertCategoryOwner(id, userId)
     await db.delete(categories).where(eq(categories.id, id))
     return { id }
   },
 }
 
 export const productService = {
-  async list(storeId: string, query: ProductListQuery = {}) {
+  isPublicListQuery(query: ProductListQuery = {}) {
+    return query.isActive === true
+  },
+
+  async list(
+    storeId: string,
+    query: ProductListQuery = {},
+    userId?: string | null
+  ) {
+    if (!productService.isPublicListQuery(query)) {
+      if (!userId) forbidden("You do not own this store")
+      await tenancyService.assertStoreOwner(storeId, userId)
+    }
     const page = query.page ?? 1
     const limit = query.limit ?? 10
     const offset = (page - 1) * limit
@@ -366,7 +369,11 @@ export const productService = {
 
   async create(userId: string, input: CreateProductInput) {
     await subscriptionService.assertCanCreateProduct(userId, input.storeId)
-    await storeService.assertOwner(input.storeId, userId)
+    await tenancyService.assertStoreOwner(input.storeId, userId)
+    await tenancyService.assertCategoryBelongsToStore(
+      input.categoryId,
+      input.storeId
+    )
     const store = await storeService.getById(input.storeId)
     const slug = slugify(input.name)
     const [product] = await db
@@ -398,8 +405,11 @@ export const productService = {
   },
 
   async update(id: string, userId: string, input: UpdateProductInput) {
-    const existing = await productService.getById(id)
-    await storeService.assertOwner(existing.storeId, userId)
+    const existing = await tenancyService.assertProductOwner(id, userId)
+    await tenancyService.assertCategoryBelongsToStore(
+      input.categoryId,
+      existing.storeId
+    )
     const store = await storeService.getById(existing.storeId)
 
     const { sizes, variations, modifiers, currency: _currency, ...productFields } = input
@@ -431,8 +441,7 @@ export const productService = {
   },
 
   async delete(id: string, userId: string) {
-    const existing = await productService.getById(id)
-    await storeService.assertOwner(existing.storeId, userId)
+    await tenancyService.assertProductOwner(id, userId)
     await db.delete(products).where(eq(products.id, id))
     return { id }
   },
@@ -444,7 +453,7 @@ export const orderService = {
     userId: string,
     query: OrderListQuery = {}
   ) {
-    await storeService.assertOwner(storeId, userId)
+    await tenancyService.assertStoreOwner(storeId, userId)
     const page = query.page ?? 1
     const limit = query.limit ?? 10
     const offset = (page - 1) * limit
@@ -491,6 +500,9 @@ export const orderService = {
 
   async create(input: CreateOrderInput) {
     const store = await storeService.getById(input.storeId)
+    if (!store.isPublished) {
+      badRequest("This store is not accepting orders")
+    }
     const total = input.items
       .reduce(
         (sum, item) => sum + parseFloat(item.price) * item.quantity,
@@ -513,15 +525,28 @@ export const orderService = {
         .where(and(eq(products.id, productId), eq(products.storeId, store.id)))
 
       if (!product) badRequest("One or more products are no longer available")
+      if (!product.isActive) badRequest("One or more products are no longer available")
       if (product.inventory !== null && product.inventory < quantity) {
         badRequest(`Insufficient stock for ${product.name}`)
       }
     }
 
+    const customer = await customerService.upsertFromOrder(input.storeId, {
+      name: input.customerName,
+      phone: input.customerPhone,
+      email: input.customerEmail,
+      address: input.customerAddress,
+      city: input.customerCity,
+      region: input.customerRegion,
+      notes: input.customerNotes,
+      orderTotal: total,
+    })
+
     const [order] = await db
       .insert(orders)
       .values({
         storeId: input.storeId,
+        customerId: customer.id,
         customerName: input.customerName,
         customerPhone: input.customerPhone,
         total,
@@ -530,6 +555,16 @@ export const orderService = {
       .returning()
 
     await orderItemsService.insertMany(order.id, input.items)
+
+    await storeTransactionService.createForOrder({
+      storeId: input.storeId,
+      orderId: order.id,
+      customerId: customer.id,
+      amount: total,
+      currency: store.currency ?? "USD",
+      source: order.source,
+      orderStatus: order.status,
+    })
 
     for (const [productId, quantity] of quantityByProduct) {
       await db
@@ -548,14 +583,14 @@ export const orderService = {
   },
 
   async updateStatus(id: string, userId: string, input: UpdateOrderStatusInput) {
-    const [existing] = await db.select().from(orders).where(eq(orders.id, id))
-    if (!existing) notFound("Order not found")
-    await storeService.assertOwner(existing.storeId, userId)
+    await tenancyService.assertOrderOwner(id, userId)
     const [order] = await db
       .update(orders)
       .set({ status: input.status, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning()
+
+    await storeTransactionService.syncStatusForOrder(order.id, order.status)
 
     const itemsMap = await orderItemsService.loadByOrderIds([order.id])
     return serializeOrder(order, itemsMap[order.id] ?? [])

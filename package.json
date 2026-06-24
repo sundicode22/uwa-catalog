@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed:main-store": "npx tsx scripts/seed-main-store-products.ts",
+    "db:seed:plans": "npx tsx scripts/seed-billing-plans.ts",
     "db:fix:main-store": "npx tsx scripts/seed-main-store-products.ts --fix-existing"
   },
   "dependencies": {
