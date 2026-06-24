@@ -2,9 +2,13 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function FormInput({ className, type, ...props }: React.ComponentProps<"input">) {
+const FormInput = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentProps<"input">
+>(function FormInput({ className, type, ...props }, ref) {
   return (
     <input
+      ref={ref}
       type={type}
       data-slot="form-input"
       className={cn(
@@ -14,6 +18,8 @@ function FormInput({ className, type, ...props }: React.ComponentProps<"input">)
       {...props}
     />
   )
-}
+})
+
+FormInput.displayName = "FormInput"
 
 export { FormInput }

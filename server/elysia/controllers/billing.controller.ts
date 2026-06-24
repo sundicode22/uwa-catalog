@@ -85,8 +85,8 @@ export const billingController = {
     return success(result)
   },
 
-  async handleNotchPayCallback(query: Record<string, string | undefined>) {
-    const { redirectTo } = await notchpayBillingService.handleCallback(query)
+  async handleNotchPayCallback(requestUrl: string) {
+    const { redirectTo } = await notchpayBillingService.handleCallback(requestUrl)
     return new Response(null, {
       status: 302,
       headers: { Location: redirectTo },

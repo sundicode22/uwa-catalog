@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import {
   BanknoteIcon,
   CheckCircle2Icon,
@@ -10,14 +11,45 @@ import {
   PackageIcon,
   XCircleIcon,
 } from "lucide-react"
-import { OrderStatusChart } from "@/components/dashboard/order-status-chart"
-import { OrdersTrendChart } from "@/components/dashboard/orders-trend-chart"
-import { RevenueChart } from "@/components/dashboard/revenue-chart"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { DashboardWelcome } from "@/components/dashboard/dashboard-welcome"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useStore, useStoreStats } from "@/hooks/use-store"
 import { formatMoney } from "@/lib/format"
 import { resolveStoreCurrency } from "@/lib/currency"
+
+const OrdersTrendChart = dynamic(
+  () =>
+    import("@/components/dashboard/orders-trend-chart").then((module) => ({
+      default: module.OrdersTrendChart,
+    })),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[320px] w-full rounded-xl" />,
+  }
+)
+
+const RevenueChart = dynamic(
+  () =>
+    import("@/components/dashboard/revenue-chart").then((module) => ({
+      default: module.RevenueChart,
+    })),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[320px] w-full rounded-xl" />,
+  }
+)
+
+const OrderStatusChart = dynamic(
+  () =>
+    import("@/components/dashboard/order-status-chart").then((module) => ({
+      default: module.OrderStatusChart,
+    })),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[320px] w-full rounded-xl" />,
+  }
+)
 
 export default function DashboardPage() {
   const { store, stores } = useStore()

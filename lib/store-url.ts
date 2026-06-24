@@ -1,4 +1,5 @@
 import type { Store } from "@/types/domain"
+import { getSiteName } from "@/lib/seo/site"
 
 export function getStorePath(slug: string) {
   return `/c/${slug}`
@@ -21,7 +22,7 @@ export async function shareStoreLink(store: Store, url: string) {
     try {
       await navigator.share({
         title: store.name,
-        text: `Browse ${store.name} on UWA Catalog`,
+        text: `Browse ${store.name} on ${getSiteName()}`,
         url,
       })
       return

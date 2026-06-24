@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useCallback, useEffect, useState } from "react"
 import Autoplay from "embla-carousel-autoplay"
 import {
@@ -10,7 +9,6 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { TESTIMONIALS } from "@/lib/landing/content"
-import { landingImage } from "@/lib/landing/images"
 import { cn } from "@/lib/utils"
 
 export function LandingTestimonials() {
@@ -67,8 +65,7 @@ export function LandingTestimonials() {
                     type="button"
                     onClick={() => api?.scrollTo(index)}
                     className={cn(
-                      "absolute overflow-hidden rounded-full shadow-lg transition-all duration-500",
-                      item.tone,
+                      "absolute overflow-hidden rounded-full border border-border/80 bg-muted shadow-lg transition-all duration-500",
                       isActive
                         ? "z-10 size-14 ring-4 ring-primary/25 sm:size-16"
                         : "z-0 size-12 opacity-70 hover:opacity-100 sm:size-14"
@@ -78,13 +75,7 @@ export function LandingTestimonials() {
                     }}
                     aria-label={`View testimonial from ${item.name}`}
                   >
-                    <Image
-                      src={landingImage(item.imageSeed, 128)}
-                      alt={item.name}
-                      width={64}
-                      height={64}
-                      className="size-full object-cover"
-                    />
+                    <span className="sr-only">{item.name}</span>
                   </button>
                 )
               })}

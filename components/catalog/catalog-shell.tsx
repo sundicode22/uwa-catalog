@@ -1,8 +1,16 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { CartProvider } from "@/components/catalog/cart-context"
-import { CartDrawer } from "@/components/catalog/cart-drawer"
 import type { StoreWithCategories } from "@/types/domain"
+
+const CartDrawer = dynamic(
+  () =>
+    import("@/components/catalog/cart-drawer").then((module) => ({
+      default: module.CartDrawer,
+    })),
+  { ssr: false }
+)
 
 export function CatalogShell({
   store,

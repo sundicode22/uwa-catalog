@@ -164,26 +164,51 @@ export type NotchPayCallbackParams = {
 }
 
 export const resolveCallbackParams = (
-  query: Record<string, string | undefined>
+  input: Record<string, string | undefined> | string
 ): NotchPayCallbackParams => {
+  if (typeof input === "string") {
+    const url = new URL(input)
+    const references = url.searchParams
+      .getAll("reference")
+      .map((value) => value.trim())
+      .filter(Boolean)
+
+    const merchantRef =
+      url.searchParams.get("notchpay_trxref")?.trim() ||
+      url.searchParams.get("trxref")?.trim() ||
+      references.find(isMerchantReference) ||
+      null
+
+    const paymentRef =
+      references.find((value) => !isMerchantReference(value)) ||
+      url.searchParams.get("payment_reference")?.trim() ||
+      null
+
+    return {
+      merchantRef,
+      paymentRef,
+      statusHint: url.searchParams.get("status")?.trim().toLowerCase() ?? null,
+    }
+  }
+
   const merchantRef =
-    query.notchpay_trxref?.trim() ||
-    query.trxref?.trim() ||
-    (query.reference && isMerchantReference(query.reference)
-      ? query.reference.trim()
+    input.notchpay_trxref?.trim() ||
+    input.trxref?.trim() ||
+    (input.reference && isMerchantReference(input.reference)
+      ? input.reference.trim()
       : null) ||
     null
 
   const paymentRef =
-    (query.reference && !isMerchantReference(query.reference)
-      ? query.reference.trim()
+    (input.reference && !isMerchantReference(input.reference)
+      ? input.reference.trim()
       : null) ||
-    (query.payment_reference?.trim() ?? null)
+    (input.payment_reference?.trim() ?? null)
 
   return {
     merchantRef,
     paymentRef,
-    statusHint: query.status?.trim().toLowerCase() ?? null,
+    statusHint: input.status?.trim().toLowerCase() ?? null,
   }
 }
 
@@ -509,10 +534,11 @@ export const notchpayBillingService = {
 
     const { transaction, authorizationUrl } = normalizeNotchPayPayment(payment)
     const externalTransactionId =
-      transaction?.id ??
-      (transaction?.reference && transaction.reference !== reference
+      (transaction?.reference && !isMerchantReference(transaction.reference)
         ? transaction.reference
-        : null)
+        : null) ??
+      transaction?.id ??
+      null
 
     if (!authorizationUrl) {
       throw new AppError(
@@ -593,8 +619,12 @@ export const notchpayBillingService = {
     return processPaymentResult(merchantRef, userId, parsed.plan, payment)
   },
 
-  async handleCallback(query: Record<string, string | undefined>) {
-    const { merchantRef, paymentRef, statusHint } = resolveCallbackParams(query)
+  async handleCallback(input: Record<string, string | undefined> | string) {
+    let { merchantRef, paymentRef, statusHint } = resolveCallbackParams(input)
+
+    if (!merchantRef && paymentRef) {
+      merchantRef = await lookupMerchantReference(paymentRef)
+    }
 
     if (!merchantRef) {
       return {

@@ -88,11 +88,11 @@ export function LandingHero({ isLoggedIn }: LandingHeroProps) {
         >
           {LANDING_HERO_FLOATERS.map((item) => (
             <div
-              key={item.seed}
+              key={item.imageId}
               className={`absolute overflow-hidden rounded-xl border-2 border-background shadow-lg ${item.className}`}
             >
               <Image
-                src={landingImage(item.seed, 200)}
+                src={landingImage(item.imageId, 200)}
                 alt={item.alt}
                 width={96}
                 height={96}

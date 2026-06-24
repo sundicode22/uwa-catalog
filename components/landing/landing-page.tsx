@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic"
 import type { Session } from "next-auth"
 import type { PlanDefinition } from "@/types/domain"
 import { LandingCta } from "./landing-cta"
@@ -10,7 +11,14 @@ import { LandingHero } from "./landing-hero"
 import { LandingHighlights } from "./landing-highlights"
 import { LandingPricing } from "./landing-pricing"
 import { LandingSteps } from "./landing-steps"
-import { LandingTestimonials } from "./landing-testimonials"
+
+const LandingTestimonials = dynamic(
+  () =>
+    import("./landing-testimonials").then((module) => ({
+      default: module.LandingTestimonials,
+    })),
+  { loading: () => null }
+)
 
 interface LandingPageProps {
   session: Session | null

@@ -1,4 +1,4 @@
-const DEFAULT_SITE_NAME = "UWA Catalog"
+const DEFAULT_SITE_NAME = "sundiii"
 
 export function getSiteName() {
   return process.env.NEXT_PUBLIC_SITE_NAME?.trim() || DEFAULT_SITE_NAME
@@ -6,7 +6,9 @@ export function getSiteName() {
 
 /** Canonical origin for metadata, sitemaps, and JSON-LD. */
 export function getSiteUrl() {
-  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  const fromEnv =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ??
+    process.env.NEXT_PUBLIC_APP_URL?.trim()
   if (fromEnv) return fromEnv.replace(/\/$/, "")
 
   const vercel = process.env.VERCEL_URL?.trim()

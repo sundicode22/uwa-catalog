@@ -11,23 +11,23 @@ export function LandingGallery() {
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <p className="text-sm font-medium text-primary">Storefronts in the wild</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Catalogs that look alive
+            Simple products, beautiful catalogs
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Real product photography, clean grids, and layouts that make every item
-            shine — no developer required.
+            Totes, mugs, sneakers, candles, and more — showcase everyday products
+            with clean photos and layouts that sell.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:grid-rows-2 md:gap-4">
           {LANDING_GALLERY_IMAGES.map((item, index) => (
             <div
-              key={item.seed}
+              key={item.imageId}
               className={`animate-fade-in-up group relative min-h-[140px] overflow-hidden rounded-2xl border border-border bg-muted sm:min-h-[180px] ${item.className}`}
               style={{ animationDelay: `${index * 70}ms` }}
             >
               <Image
-                src={landingImage(item.seed, 800, 600)}
+                src={landingImage(item.imageId, 800, 600)}
                 alt={item.alt}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"

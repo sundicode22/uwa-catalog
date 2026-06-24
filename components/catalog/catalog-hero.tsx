@@ -34,6 +34,7 @@ export function CatalogHero({
             fill
             className="object-cover"
             priority
+            sizes="100vw"
           />
           <div className="absolute inset-0 bg-background/75" />
         </div>
@@ -80,6 +81,7 @@ export function CatalogHero({
                           alt={product.name}
                           fill
                           className="object-cover transition-transform duration-300 group-hover/featured:scale-105"
+                          sizes="80px"
                         />
                       ) : (
                         <div className="size-full bg-muted" />

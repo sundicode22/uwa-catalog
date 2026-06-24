@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Syne } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
 import { getSiteName, getSiteUrl } from "@/lib/seo/site"
@@ -7,6 +7,12 @@ import { getSiteName, getSiteUrl } from "@/lib/seo/site"
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+})
+
+const syne = Syne({
+  variable: "--font-logo",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
 })
 
 const siteName = getSiteName()
@@ -48,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} ${syne.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>

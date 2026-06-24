@@ -136,7 +136,7 @@ export function PremiumCatalog({ store }: { store: StoreWithCategories }) {
 
       {heroImages.length > 0 ? (
         <section className="grid md:grid-cols-3">
-          {heroImages.map((product) => (
+          {heroImages.map((product, index) => (
             <Link
               key={product.id}
               href={`/c/${store.slug}/products/${product.slug}`}
@@ -148,7 +148,8 @@ export function PremiumCatalog({ store }: { store: StoreWithCategories }) {
                   alt={product.name}
                   fill
                   className="object-cover"
-                  priority
+                  priority={index === 0}
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
               ) : (
                 <div className="size-full bg-neutral-200" />
@@ -164,6 +165,7 @@ export function PremiumCatalog({ store }: { store: StoreWithCategories }) {
             fill
             className="object-cover"
             priority
+            sizes="100vw"
           />
         </section>
       ) : null}

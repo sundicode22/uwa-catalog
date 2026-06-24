@@ -28,7 +28,7 @@ function buildOpenGraphImage(url: string, alt: string) {
 
 export function buildPrivateMetadata(title: string): Metadata {
   return {
-    title: { absolute: `${title} | UWA Catalog` },
+    title: { absolute: `${title} | ${getSiteName()}` },
     robots: buildRobots(false),
   }
 }

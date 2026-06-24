@@ -1,6 +1,7 @@
 import Image from "next/image"
 import {
   LANDING_PREVIEW_PRODUCTS,
+  LANDING_STORE_LOGO_IMAGE_ID,
   landingImage,
 } from "@/lib/landing/images"
 import { cn } from "@/lib/utils"
@@ -30,7 +31,7 @@ export function LandingPreview({ className }: LandingPreviewProps) {
             <div className="flex items-center gap-3">
               <div className="relative size-9 overflow-hidden rounded-full border border-border lg:size-10">
                 <Image
-                  src={landingImage("store-logo", 80)}
+                  src={landingImage(LANDING_STORE_LOGO_IMAGE_ID, 80)}
                   alt="Main Store"
                   fill
                   className="object-cover"
@@ -48,17 +49,18 @@ export function LandingPreview({ className }: LandingPreviewProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:gap-3.5">
-            {LANDING_PREVIEW_PRODUCTS.map((product) => (
+            {LANDING_PREVIEW_PRODUCTS.map((product, index) => (
               <div
                 key={product.name}
                 className="overflow-hidden rounded-xl border border-border bg-card"
               >
                 <div className="relative aspect-square bg-muted">
                   <Image
-                    src={landingImage(product.seed, 400)}
+                    src={landingImage(product.imageId, 400)}
                     alt={product.name}
                     fill
                     className="object-cover"
+                    priority={index === 0}
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 180px"
                   />
                 </div>

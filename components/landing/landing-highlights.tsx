@@ -43,13 +43,13 @@ export function LandingHighlights() {
             <div className="relative mx-auto aspect-[4/3] w-full max-w-md lg:max-w-none">
               {LANDING_HIGHLIGHT_COLLAGE.map((item, index) => (
                 <div
-                  key={item.seed}
+                  key={item.imageId}
                   className={`animate-fade-in-up absolute overflow-hidden rounded-2xl border border-border bg-background shadow-xl ${item.className}`}
                   style={{ animationDelay: `${index * 120}ms` }}
                 >
                   <div className="relative aspect-[4/3]">
                     <Image
-                      src={landingImage(item.seed, 600, 450)}
+                      src={landingImage(item.imageId, 600, 450)}
                       alt={item.alt}
                       fill
                       className="object-cover"

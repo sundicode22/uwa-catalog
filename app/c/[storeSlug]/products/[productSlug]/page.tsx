@@ -97,8 +97,11 @@ export default async function ProductDetailPage({
   const data = await getProductPageData(storeSlug, productSlug)
   if (!data) notFound()
 
-  const session = await auth()
-  const isOwner = session?.user?.id === data.store.ownerId
+  let isOwner = false
+  if (!data.store.isPublished) {
+    const session = await auth()
+    isOwner = session?.user?.id === data.store.ownerId
+  }
 
   if (!data.store.isPublished && !isOwner) {
     return <UnpublishedStorePage storeName={data.store.name} />

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { AppLogo } from "@/components/brand/app-logo"
 import { getSiteName } from "@/lib/seo/site"
 import { LANDING_NAV } from "@/lib/landing/content"
 
@@ -7,16 +8,11 @@ export function LandingFooter() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-border bg-brand-gradient-sidebar">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <footer className="w-full border-t border-border bg-brand-gradient-sidebar">
+      <div className="w-full px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-4 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
-              <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
-                {siteName.slice(0, 1)}
-              </span>
-              {siteName}
-            </Link>
+            <AppLogo size="md" />
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
               Create beautiful product catalogs, manage inventory, and accept orders
               — including WhatsApp checkout — without building a full store from scratch.

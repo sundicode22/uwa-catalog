@@ -65,10 +65,8 @@ export const billingRoutes = new Elysia()
       billingController.createNotchPayCheckout(requireAuth(userId), body.plan),
     { body: planBody }
   )
-  .get("/billing/notchpay/callback", ({ query }) =>
-    billingController.handleNotchPayCallback(
-      query as Record<string, string | undefined>
-    )
+  .get("/billing/notchpay/callback", ({ request }) =>
+    billingController.handleNotchPayCallback(request.url)
   )
   .post(
     "/billing/notchpay/verify",

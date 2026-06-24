@@ -153,6 +153,7 @@ export function ProductImageFrame({
           src={image}
           alt={product.name}
           fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
           className={cn(
             "object-cover transition-transform duration-300 [@media(hover:hover)]:group-hover/card:scale-105",
             imageClassName

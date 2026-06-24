@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { StoreIcon } from "lucide-react"
-import { getSiteName } from "@/lib/seo/site"
+import { AppLogo } from "@/components/brand/app-logo"
 import { cn } from "@/lib/utils"
 
 const MESSAGES = [
@@ -12,7 +11,6 @@ const MESSAGES = [
 ]
 
 export function StoreSetupLoader() {
-  const siteName = getSiteName()
   const [messageIndex, setMessageIndex] = useState(0)
 
   useEffect(() => {
@@ -50,16 +48,15 @@ export function StoreSetupLoader() {
             style={{ animationDuration: "1.8s", animationDirection: "reverse" }}
             aria-hidden
           />
-          <div className="relative flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-            <StoreIcon className="size-7" />
+          <div className="relative flex size-14 items-center justify-center">
+            <AppLogo asLink={false} size="lg" />
           </div>
         </div>
 
-        <p className="mt-8 text-lg font-semibold tracking-tight">{siteName}</p>
         <p
           key={messageIndex}
           className={cn(
-            "mt-2 min-h-5 text-sm text-muted-foreground",
+            "mt-8 min-h-5 text-sm text-muted-foreground",
             "animate-fade-in-up"
           )}
         >

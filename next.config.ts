@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["elysia"],
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "@tanstack/react-table",
+      "date-fns",
+    ],
+  },
   images: {
     remotePatterns: [
       {
@@ -15,6 +23,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
       },
     ],
   },

@@ -45,45 +45,30 @@ export const TESTIMONIALS = [
     role: "Boutique owner",
     quote:
       "We replaced our PDF catalog in a weekend. Customers order faster and we finally track stock properly.",
-    initials: "AO",
-    imageSeed: "seller-amara",
-    tone: "from-orange-400 to-amber-500",
   },
   {
     name: "James Chen",
     role: "Home goods seller",
     quote:
       "WhatsApp checkout is a game changer for our market. Orders land organized in the dashboard.",
-    initials: "JC",
-    imageSeed: "seller-james",
-    tone: "from-amber-400 to-orange-500",
   },
   {
     name: "Sofia Martinez",
     role: "Food pop-up",
     quote:
       "Modifiers with images made our menu crystal clear. Setup was simple and the storefront looks premium.",
-    initials: "SM",
-    imageSeed: "seller-sofia",
-    tone: "from-orange-400 to-red-500",
   },
   {
     name: "David Okon",
     role: "Electronics reseller",
     quote:
       "Inventory limits stopped overselling during busy weeks. The team loves the clean admin experience.",
-    initials: "DO",
-    imageSeed: "seller-david",
-    tone: "from-amber-400 to-orange-600",
   },
   {
     name: "Lena Park",
     role: "Artisan crafts",
     quote:
       "Beautiful layouts without hiring a developer. Our catalog link is now on every social bio.",
-    initials: "LP",
-    imageSeed: "seller-lena",
-    tone: "from-yellow-400 to-orange-500",
   },
 ] as const
 

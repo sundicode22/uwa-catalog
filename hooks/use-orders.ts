@@ -33,7 +33,6 @@ export function useOrders(
 export function useCreateOrder(storeId?: string) {
   const keys = storeId ? storeQueryKeys(storeId) : null
   return useApiMutation("POST /orders", "POST", {
-    successMessage: "Order saved successfully",
     invalidateKeys: keys ? [keys.orders, keys.stats, keys.customers, keys.transactions] : [],
   })
 }

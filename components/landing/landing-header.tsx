@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { MenuIcon } from "lucide-react"
+import { AppLogo } from "@/components/brand/app-logo"
 import { Button } from "@/components/ui/button"
 import {
   NavigationMenu,
@@ -20,7 +21,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { getSiteName } from "@/lib/seo/site"
 import { LANDING_NAV } from "@/lib/landing/content"
 import { cn } from "@/lib/utils"
 import { LandingUserMenu } from "./landing-user-menu"
@@ -35,7 +35,6 @@ interface LandingHeaderProps {
 }
 
 export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
-  const siteName = getSiteName()
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -55,15 +54,7 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
       )}
     >
       <div className="mx-auto grid h-16 max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6">
-        <Link
-          href="/"
-          className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight"
-        >
-          <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
-            {siteName.slice(0, 1)}
-          </span>
-          <span className="hidden sm:inline">{siteName}</span>
-        </Link>
+        <AppLogo size="md" className="justify-self-start" />
 
         <NavigationMenu
           className="hidden max-w-none flex-none justify-self-center lg:flex"
@@ -143,7 +134,8 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
               <SheetHeader>
-                <SheetTitle>{siteName}</SheetTitle>
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <AppLogo size="md" />
               </SheetHeader>
               <nav className="mt-6 flex flex-col gap-1">
                 {LANDING_NAV.product.map((item) => (

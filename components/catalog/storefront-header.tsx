@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ShoppingBagIcon } from "lucide-react"
 import { CatalogSearch } from "@/components/catalog/catalog-search"
 import { useCart } from "@/components/catalog/cart-context"
+import { whatsAppUrl } from "@/lib/whatsapp"
 import type { StoreWithCategories } from "@/types/domain"
 
 export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
@@ -30,7 +31,10 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
           ))}
           {store.whatsappNumber ? (
             <a
-              href={`https://wa.me/${store.whatsappNumber.replace(/\D/g, "")}`}
+              href={
+                whatsAppUrl(store.whatsappNumber, `Hi ${store.name}, I have a question about your catalog.`) ??
+                "#"
+              }
               target="_blank"
               rel="noreferrer"
               className="hover:opacity-80"
@@ -54,9 +58,7 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
             href={`/c/${store.slug}`}
             className="text-center text-2xl font-semibold tracking-[0.35em] uppercase"
           >
-ow r             <h1 className="text-2xl font-semibold tracking-[0.35em] uppercase">
-              {store.name}
-            </h1>
+            {store.name}
           </Link>
 
           <div className="flex items-center justify-end gap-3">

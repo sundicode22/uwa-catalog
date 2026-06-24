@@ -1,5 +1,6 @@
 "use client"
 
+import type { Country } from "react-phone-number-input"
 import { useState } from "react"
 import Image from "next/image"
 import { isValidPhoneNumber } from "react-phone-number-input"
@@ -21,8 +22,15 @@ import { useCart } from "./cart-context"
 import { useCreateOrder } from "@/hooks/use-orders"
 import { formatSelectionsLabel } from "@/lib/product-options"
 import { formatMoney } from "@/lib/format"
-import { absoluteUrl } from "@/lib/seo/site"
-import { getProductPath } from "@/lib/seo/paths"
+import { getSiteUrl } from "@/lib/seo/site"
+import {
+  buildWhatsAppOrderMessage,
+  defaultPhoneCountry,
+  getCatalogOrigin,
+  normalizeWhatsAppPhone,
+  openWhatsAppChat,
+  prepareWhatsAppChat,
+} from "@/lib/whatsapp"
 import {
   formatStockRemaining,
   getMaxCartQuantity,
@@ -48,36 +56,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
   const isWhatsAppMode = store.orderMode === "whatsapp"
 
   const phoneValid = customerPhone ? isValidPhoneNumber(customerPhone) : false
-
-  function buildWhatsAppMessage(
-    orderItems: {
-      name: string
-      displayName?: string
-      price: string
-      quantity: number
-      productSlug: string
-      selections?: Parameters<typeof formatSelectionsLabel>[0]
-    }[]
-  ) {
-    return [
-      `*New Order for ${store.name}*`,
-      ``,
-      `Customer: ${customerName}`,
-      `Phone: ${customerPhone}`,
-      ``,
-      `*Items:*`,
-      ...orderItems.map((item) => {
-        const label = item.displayName ?? item.name
-        const productUrl = absoluteUrl(getProductPath(store.slug, item.productSlug))
-        return [
-          `- ${label} x${item.quantity} @ ${formatMoney(item.price, store.currency)}`,
-          `  ${productUrl}`,
-        ].join("\n")
-      }),
-      ``,
-      `*Total:* ${formatMoney(total, store.currency)}`,
-    ].join("\n")
-  }
+  const phoneDefaultCountry = defaultPhoneCountry(store.currency) as Country
 
   async function handleCheckout() {
     if (!customerName || !customerPhone || items.length === 0) return
@@ -87,6 +66,14 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     }
     if (isWhatsAppMode && !store.whatsappNumber) {
       toast.error("Store has no WhatsApp number configured")
+      return
+    }
+    if (
+      isWhatsAppMode &&
+      store.whatsappNumber &&
+      normalizeWhatsAppPhone(store.whatsappNumber).length < 8
+    ) {
+      toast.error("Store WhatsApp number is invalid — update it in Settings")
       return
     }
 
@@ -112,26 +99,50 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       selections: i.selections,
     }))
 
-    await createOrder.mutateAsync({
-      body: {
-        storeId: store.id,
-        customerName,
-        customerPhone,
-        customerEmail: customerEmail || undefined,
-        customerAddress: customerAddress || undefined,
-        customerCity: customerCity || undefined,
-        items: orderItems,
-        source: isWhatsAppMode ? "whatsapp" : "checkout",
-      },
-    })
+    const whatsAppWindow =
+      isWhatsAppMode && store.whatsappNumber ? prepareWhatsAppChat() : null
+
+    try {
+      await createOrder.mutateAsync({
+        body: {
+          storeId: store.id,
+          customerName,
+          customerPhone,
+          customerEmail: customerEmail || undefined,
+          customerAddress: customerAddress || undefined,
+          customerCity: customerCity || undefined,
+          items: orderItems,
+          source: isWhatsAppMode ? "whatsapp" : "checkout",
+        },
+      })
+    } catch {
+      whatsAppWindow?.close()
+      return
+    }
 
     if (isWhatsAppMode && store.whatsappNumber) {
-      const phone = store.whatsappNumber.replace(/\D/g, "")
-      window.open(
-        `https://wa.me/${phone}?text=${encodeURIComponent(buildWhatsAppMessage(orderItems))}`,
-        "_blank"
-      )
-      toast.success("Order saved — finish sending in WhatsApp")
+      const message = buildWhatsAppOrderMessage({
+        storeName: store.name,
+        storeSlug: store.slug,
+        currency: store.currency,
+        customer: {
+          name: customerName,
+          phone: customerPhone,
+          email: customerEmail || undefined,
+          address: customerAddress || undefined,
+          city: customerCity || undefined,
+        },
+        items: orderItems,
+        total,
+        origin: getCatalogOrigin(getSiteUrl()),
+      })
+
+      const opened = openWhatsAppChat(store.whatsappNumber, message, whatsAppWindow)
+      if (!opened) {
+        toast.error("Could not open WhatsApp. Check the store WhatsApp number.")
+        return
+      }
+      toast.success("Order saved — send the message in WhatsApp to confirm")
     } else {
       toast.success("Order placed")
     }
@@ -284,7 +295,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               </div>
               <PhoneInput
                 className="bg-background"
-                defaultCountry="US"
+                defaultCountry={phoneDefaultCountry}
                 placeholder="Your phone number"
                 value={customerPhone}
                 onChange={(value) => setCustomerPhone(value ?? "")}

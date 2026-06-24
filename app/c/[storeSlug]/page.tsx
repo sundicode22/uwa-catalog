@@ -40,8 +40,11 @@ export default async function CatalogPage({
   const store = await getStoreBySlug(storeSlug)
   if (!store) notFound()
 
-  const session = await auth()
-  const isOwner = session?.user?.id === store.ownerId
+  let isOwner = false
+  if (!store.isPublished) {
+    const session = await auth()
+    isOwner = session?.user?.id === store.ownerId
+  }
 
   if (!store.isPublished && !isOwner) {
     return <UnpublishedStorePage storeName={store.name} />

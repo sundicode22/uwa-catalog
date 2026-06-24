@@ -1,7 +1,8 @@
 import { eq, and, ilike, count, desc, gte, sql, or } from "drizzle-orm"
 import { db, stores, categories, products, orders } from "@/lib/db"
 import { slugify, paginationMeta } from "@/server/lib/response"
-import { formatSelectionsLabel } from "@/lib/product-options"
+import { buildWhatsAppOrderMessage } from "@/lib/whatsapp"
+import { getSiteUrl } from "@/lib/seo/site"
 import { productOptionsService } from "./product-options.service"
 import { orderItemsService } from "./order-items.service"
 import { subscriptionService } from "./subscription.service"
@@ -598,28 +599,24 @@ export const orderService = {
 
   buildWhatsAppMessage(
     storeName: string,
+    storeSlug: string,
+    currency: string,
     customerName: string,
     customerPhone: string,
     items: CreateOrderInput["items"]
   ) {
-    const lines = [
-      `*New Order for ${storeName}*`,
-      ``,
-      `Customer: ${customerName}`,
-      `Phone: ${customerPhone}`,
-      ``,
-      `*Items:*`,
-      ...items.map((item) => {
-        const label =
-          item.displayName ??
-          (item.selections
-            ? `${item.name} (${formatSelectionsLabel(item.selections)})`
-            : item.name)
-        return `- ${label} x${item.quantity} @ ${item.price}`
-      }),
-      ``,
-      `*Total:* ${items.reduce((s, i) => s + parseFloat(i.price) * i.quantity, 0).toFixed(2)}`,
-    ]
-    return lines.join("\n")
+    const total = items.reduce(
+      (sum, item) => sum + parseFloat(item.price) * item.quantity,
+      0
+    )
+    return buildWhatsAppOrderMessage({
+      storeName,
+      storeSlug,
+      currency,
+      customer: { name: customerName, phone: customerPhone },
+      items,
+      total,
+      origin: getSiteUrl(),
+    })
   },
 }

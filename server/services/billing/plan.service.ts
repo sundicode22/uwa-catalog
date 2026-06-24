@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache"
 import { asc, eq } from "drizzle-orm"
 import { db, billingPlanDefinitions } from "@/lib/db"
 import {
@@ -32,9 +33,15 @@ async function loadPlansFromDb() {
   return rows.map(rowToPlan)
 }
 
+const getCachedActivePlans = unstable_cache(
+  loadPlansFromDb,
+  ["billing-active-plans"],
+  { revalidate: 3600 }
+)
+
 export const planService = {
   async getAllPlans(): Promise<PlanDefinition[]> {
-    const plans = await loadPlansFromDb()
+    const plans = await getCachedActivePlans()
     if (plans.length > 0) return plans
     return Object.values(DEFAULT_BILLING_PLANS)
   },

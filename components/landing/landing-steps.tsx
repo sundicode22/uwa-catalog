@@ -41,7 +41,7 @@ export function LandingSteps() {
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                 <Image
-                  src={landingImage(LANDING_STEP_IMAGES[index].seed, 640, 400)}
+                  src={landingImage(LANDING_STEP_IMAGES[index].imageId, 640, 400)}
                   alt={LANDING_STEP_IMAGES[index].alt}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
