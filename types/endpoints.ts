@@ -176,7 +176,7 @@ export interface ApiEndpoints {
     response: CheckoutSessionResult
   }
   "POST /billing/notchpay/verify": {
-    body: { reference: string }
+    body: { reference: string; paymentReference?: string }
     response: NotchPayVerifyResult
   }
 }

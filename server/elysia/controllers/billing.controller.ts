@@ -72,8 +72,24 @@ export const billingController = {
     return success(result)
   },
 
-  async verifyNotchPayPayment(userId: string, reference: string) {
-    const result = await notchpayBillingService.verifyPayment(reference, userId)
+  async verifyNotchPayPayment(
+    userId: string,
+    reference: string,
+    paymentReference?: string
+  ) {
+    const result = await notchpayBillingService.verifyPayment(
+      reference,
+      userId,
+      paymentReference
+    )
     return success(result)
+  },
+
+  async handleNotchPayCallback(query: Record<string, string | undefined>) {
+    const { redirectTo } = await notchpayBillingService.handleCallback(query)
+    return new Response(null, {
+      status: 302,
+      headers: { Location: redirectTo },
+    })
   },
 }

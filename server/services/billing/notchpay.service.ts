@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto"
-import { and, eq } from "drizzle-orm"
+import { and, eq, or } from "drizzle-orm"
 import { billingCustomers, billingTransactions, db, users } from "@/lib/db"
 import { type SubscriptionPlan } from "@/lib/billing/plans"
 import { planService } from "@/server/services/billing/plan.service"
@@ -112,12 +112,26 @@ const notchpayFetch = async (
   const responseCode =
     typeof data.code === "string" ? Number.parseInt(data.code, 10) : data.code
 
-  if (!response.ok || (responseCode && (responseCode < 200 || responseCode >= 300))) {
+  if (!response.ok) {
     throw new AppError(
       "NOTCHPAY_ERROR",
       data.message ??
         data.error?.message ??
         `NotchPay request failed (${response.status})`,
+      response.status === 404 ? 404 : 502
+    )
+  }
+
+  if (
+    responseCode &&
+    !Number.isNaN(responseCode) &&
+    (responseCode < 200 || responseCode >= 300)
+  ) {
+    throw new AppError(
+      "NOTCHPAY_ERROR",
+      data.message ??
+        data.error?.message ??
+        `NotchPay request failed (code ${responseCode})`,
       502
     )
   }
@@ -140,6 +154,121 @@ const createNotchPayPayment = (input: {
 
 const retrieveNotchPayPayment = (reference: string) =>
   notchpayFetch(`/payments/${encodeURIComponent(reference)}`, { method: "GET" })
+
+const isMerchantReference = (ref: string) => ref.startsWith("sub_")
+
+export type NotchPayCallbackParams = {
+  merchantRef: string | null
+  paymentRef: string | null
+  statusHint: string | null
+}
+
+export const resolveCallbackParams = (
+  query: Record<string, string | undefined>
+): NotchPayCallbackParams => {
+  const merchantRef =
+    query.notchpay_trxref?.trim() ||
+    query.trxref?.trim() ||
+    (query.reference && isMerchantReference(query.reference)
+      ? query.reference.trim()
+      : null) ||
+    null
+
+  const paymentRef =
+    (query.reference && !isMerchantReference(query.reference)
+      ? query.reference.trim()
+      : null) ||
+    (query.payment_reference?.trim() ?? null)
+
+  return {
+    merchantRef,
+    paymentRef,
+    statusHint: query.status?.trim().toLowerCase() ?? null,
+  }
+}
+
+const resolveCallbackCheckout = (
+  status: ReturnType<typeof mapTransactionStatus>
+) => {
+  if (status === "complete") return "success"
+  if (status === "failed" || status === "canceled" || status === "expired") {
+    return "failed"
+  }
+  return "pending"
+}
+
+const lookupMerchantReference = async (paymentRef: string) => {
+  const [tx] = await db
+    .select({ externalReference: billingTransactions.externalReference })
+    .from(billingTransactions)
+    .where(
+      and(
+        eq(billingTransactions.provider, "notchpay"),
+        or(
+          eq(billingTransactions.externalReference, paymentRef),
+          eq(billingTransactions.externalTransactionId, paymentRef)
+        )
+      )
+    )
+    .limit(1)
+
+  return tx?.externalReference && isMerchantReference(tx.externalReference)
+    ? tx.externalReference
+    : null
+}
+
+const retrieveNotchPayPaymentByRefs = async (input: {
+  merchantRef?: string | null
+  paymentRef?: string | null
+}) => {
+  const candidates = new Set<string>()
+
+  if (input.paymentRef) candidates.add(input.paymentRef)
+  if (input.merchantRef) candidates.add(input.merchantRef)
+
+  if (input.merchantRef) {
+    const [tx] = await db
+      .select({
+        externalReference: billingTransactions.externalReference,
+        externalTransactionId: billingTransactions.externalTransactionId,
+      })
+      .from(billingTransactions)
+      .where(
+        and(
+          eq(billingTransactions.provider, "notchpay"),
+          eq(billingTransactions.externalReference, input.merchantRef)
+        )
+      )
+      .limit(1)
+
+    if (tx?.externalTransactionId) candidates.add(tx.externalTransactionId)
+    if (
+      tx?.externalReference &&
+      !isMerchantReference(tx.externalReference)
+    ) {
+      candidates.add(tx.externalReference)
+    }
+  }
+
+  let lastError: AppError | null = null
+
+  for (const ref of candidates) {
+    try {
+      return await retrieveNotchPayPayment(ref)
+    } catch (error) {
+      if (error instanceof AppError) lastError = error
+    }
+  }
+
+  throw (
+    lastError ??
+    new AppError(
+      "NOTCHPAY_ERROR",
+      "Payment not found. Try again in a moment.",
+      502
+    )
+  )
+}
 
 const parseSubscriptionReference = (reference: string) => {
   const match = /^sub_([^_]+)_([^_]+)_(\d+)$/.exec(reference)
@@ -186,17 +315,22 @@ const mapTransactionStatus = (status?: string) => {
 }
 
 const processPaymentResult = async (
-  reference: string,
+  merchantRef: string,
   userId: string,
   plan: SubscriptionPlan,
   payment: ReturnType<typeof normalizeNotchPayPayment>["raw"]
 ) => {
   const { transaction, authorizationUrl } = normalizeNotchPayPayment(payment)
-  const paymentReference = transaction?.reference ?? reference
+  const paymentReference = merchantRef
   const status = mapTransactionStatus(transaction?.status)
   const planDefinition = await planService.getPlan(plan)
   const amount = transaction?.amount ?? planDefinition.monthlyPriceXaf
   const currency = transaction?.currency ?? "XAF"
+  const externalTransactionId =
+    transaction?.id ??
+    (transaction?.reference && transaction.reference !== merchantRef
+      ? transaction.reference
+      : null)
 
   await notchpayBillingService.upsertCustomer({
     userId,
@@ -214,7 +348,7 @@ const processPaymentResult = async (
     currency,
     reference: paymentReference,
     status,
-    externalTransactionId: transaction?.id ?? null,
+    externalTransactionId,
     externalCustomerId: transaction?.customer?.id ?? null,
     checkoutUrl: authorizationUrl,
     paymentMethod: transaction?.payment_method ?? null,
@@ -359,7 +493,7 @@ export const notchpayBillingService = {
     const planDefinition = await planService.getPlan(plan)
     const amount = planDefinition.monthlyPriceXaf
     const reference = `sub_${userId}_${plan}_${Date.now()}`
-    const callback = `${appUrl()}/dashboard/billing?checkout=notchpay&reference=${encodeURIComponent(reference)}`
+    const callback = `${appUrl()}/api/billing/notchpay/callback`
 
     const payment = await createNotchPayPayment({
       amount,
@@ -374,7 +508,11 @@ export const notchpayBillingService = {
     })
 
     const { transaction, authorizationUrl } = normalizeNotchPayPayment(payment)
-    const paymentReference = transaction?.reference ?? reference
+    const externalTransactionId =
+      transaction?.id ??
+      (transaction?.reference && transaction.reference !== reference
+        ? transaction.reference
+        : null)
 
     if (!authorizationUrl) {
       throw new AppError(
@@ -389,7 +527,7 @@ export const notchpayBillingService = {
       email: transaction?.customer?.email ?? user.email,
       name: transaction?.customer?.name ?? user.name ?? user.email,
       externalCustomerId: transaction?.customer?.id ?? null,
-      externalReference: paymentReference,
+      externalReference: reference,
       metadata: { source: "subscription_checkout" },
     })
 
@@ -398,9 +536,9 @@ export const notchpayBillingService = {
       plan,
       amount,
       currency: "XAF",
-      reference: paymentReference,
+      reference,
       status: mapTransactionStatus(transaction?.status),
-      externalTransactionId: transaction?.id ?? null,
+      externalTransactionId,
       externalCustomerId: transaction?.customer?.id ?? null,
       checkoutUrl: authorizationUrl,
       paymentMethod: transaction?.payment_method ?? null,
@@ -408,14 +546,39 @@ export const notchpayBillingService = {
     })
 
     return {
-      paymentId: transaction?.id ?? null,
-      reference: paymentReference,
+      paymentId: externalTransactionId,
+      reference,
       url: authorizationUrl,
     }
   },
 
-  async verifyPayment(reference: string, userId: string) {
-    const parsed = parseSubscriptionReference(reference)
+  async verifyPayment(
+    reference: string,
+    userId: string,
+    paymentReference?: string
+  ) {
+    let merchantRef = isMerchantReference(reference) ? reference : null
+    let paymentRef = paymentReference ?? null
+
+    if (!merchantRef && paymentRef) {
+      merchantRef = await lookupMerchantReference(paymentRef)
+    }
+    if (!merchantRef && !isMerchantReference(reference)) {
+      paymentRef = paymentRef ?? reference
+      merchantRef = await lookupMerchantReference(paymentRef)
+    }
+    if (!merchantRef && isMerchantReference(reference)) {
+      merchantRef = reference
+    }
+    if (!paymentRef && reference && !isMerchantReference(reference)) {
+      paymentRef = reference
+    }
+
+    if (!merchantRef) {
+      throw new AppError("BAD_REQUEST", "Invalid payment reference", 400)
+    }
+
+    const parsed = parseSubscriptionReference(merchantRef)
     if (!parsed) {
       throw new AppError("BAD_REQUEST", "Invalid payment reference", 400)
     }
@@ -423,12 +586,61 @@ export const notchpayBillingService = {
       throw new AppError("FORBIDDEN", "Payment does not belong to this account", 403)
     }
 
-    const payment = await retrieveNotchPayPayment(reference)
-    return processPaymentResult(reference, userId, parsed.plan, payment)
+    const payment = await retrieveNotchPayPaymentByRefs({
+      merchantRef,
+      paymentRef,
+    })
+    return processPaymentResult(merchantRef, userId, parsed.plan, payment)
+  },
+
+  async handleCallback(query: Record<string, string | undefined>) {
+    const { merchantRef, paymentRef, statusHint } = resolveCallbackParams(query)
+
+    if (!merchantRef) {
+      return {
+        redirectTo: `${appUrl()}/dashboard/billing?checkout=failed`,
+      }
+    }
+
+    const parsed = parseSubscriptionReference(merchantRef)
+    if (!parsed) {
+      return {
+        redirectTo: `${appUrl()}/dashboard/billing?checkout=failed`,
+      }
+    }
+
+    try {
+      const payment = await retrieveNotchPayPaymentByRefs({
+        merchantRef,
+        paymentRef,
+      })
+      const result = await processPaymentResult(
+        merchantRef,
+        parsed.userId,
+        parsed.plan,
+        payment
+      )
+      return {
+        redirectTo: `${appUrl()}/dashboard/billing?checkout=${resolveCallbackCheckout(result.status)}`,
+      }
+    } catch (error) {
+      console.warn("[notchpay callback] verify failed:", error)
+      if (statusHint === "complete") {
+        return {
+          redirectTo: `${appUrl()}/dashboard/billing?checkout=pending`,
+        }
+      }
+      return {
+        redirectTo: `${appUrl()}/dashboard/billing?checkout=failed`,
+      }
+    }
   },
 
   async getPayment(reference: string) {
-    return retrieveNotchPayPayment(reference)
+    if (isMerchantReference(reference)) {
+      return retrieveNotchPayPaymentByRefs({ merchantRef: reference })
+    }
+    return retrieveNotchPayPaymentByRefs({ paymentRef: reference })
   },
 
   async handleWebhook(rawBody: string, signature: string | null) {
@@ -468,18 +680,34 @@ export const notchpayBillingService = {
       return { received: true }
     }
 
-    const reference = event.data?.transaction?.reference ?? event.data?.reference
+    const reference =
+      event.data?.transaction?.reference ?? event.data?.reference
     if (!reference) {
       return { received: true }
     }
 
-    const parsed = parseSubscriptionReference(reference)
+    const merchantRef = isMerchantReference(reference)
+      ? reference
+      : await lookupMerchantReference(reference)
+    if (!merchantRef) {
+      return { received: true }
+    }
+
+    const parsed = parseSubscriptionReference(merchantRef)
     if (!parsed) {
       return { received: true }
     }
 
-    const payment = await notchpayBillingService.getPayment(reference)
-    await processPaymentResult(reference, parsed.userId, parsed.plan, payment)
+    const payment = await retrieveNotchPayPaymentByRefs({
+      merchantRef,
+      paymentRef: isMerchantReference(reference) ? null : reference,
+    })
+    await processPaymentResult(
+      merchantRef,
+      parsed.userId,
+      parsed.plan,
+      payment
+    )
 
     return { received: true }
   },

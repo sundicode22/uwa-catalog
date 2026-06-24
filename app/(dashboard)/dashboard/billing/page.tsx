@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   CheckIcon,
   CreditCardIcon,
@@ -17,7 +18,6 @@ import { useStore } from "@/hooks/use-store"
 import {
   useBillingSummary,
   useNotchPayCheckout,
-  useNotchPayVerify,
 } from "@/hooks/use-billing"
 import { formatMoney } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -175,44 +175,40 @@ function PlanCard({
 
 export default function BillingPage() {
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
   const { store } = useStore()
   const { data, isLoading } = useBillingSummary()
   const notchpayCheckout = useNotchPayCheckout()
-  const notchpayVerify = useNotchPayVerify()
+  const checkoutToastShown = useRef<string | null>(null)
 
   useEffect(() => {
     const checkout = searchParams.get("checkout")
-    const reference = searchParams.get("reference")
+    if (!checkout) return
+
+    const toastKey = `${checkout}:${searchParams.toString()}`
+    if (checkoutToastShown.current === toastKey) return
+    checkoutToastShown.current = toastKey
 
     if (checkout === "success") {
-      toast.success("Subscription updated successfully")
+      toast.success("NotchPay payment confirmed. Your plan is active.")
+      queryClient.invalidateQueries({ queryKey: ["billing"] })
+      return
+    }
+    if (checkout === "pending") {
+      toast.message(
+        "Payment received. Your plan will update once NotchPay confirms the transaction."
+      )
+      queryClient.invalidateQueries({ queryKey: ["billing"] })
+      return
+    }
+    if (checkout === "failed") {
+      toast.error("Payment was not completed. Please try again.")
       return
     }
     if (checkout === "canceled") {
       toast.message("Checkout canceled")
-      return
     }
-    if (checkout === "notchpay" && reference) {
-      notchpayVerify
-        .mutateAsync({ body: { reference } })
-        .then((result) => {
-          if (result.status === "complete") {
-            toast.success("NotchPay payment confirmed. Your plan is active.")
-          } else {
-            toast.message(
-              "Payment received. Your plan will update once NotchPay confirms the transaction."
-            )
-          }
-        })
-        .catch(() => {
-          // Error toast handled by useApiMutation
-        })
-    } else if (checkout === "notchpay") {
-      toast.message(
-        "Complete payment on your phone. Your plan updates when payment is confirmed."
-      )
-    }
-  }, [searchParams])
+  }, [searchParams, queryClient])
 
   if (isLoading) {
     return (

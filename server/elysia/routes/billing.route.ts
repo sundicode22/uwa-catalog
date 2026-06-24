@@ -8,6 +8,7 @@ const planBody = t.Object({
 
 const verifyBody = t.Object({
   reference: t.String(),
+  paymentReference: t.Optional(t.String()),
 })
 
 const planIdParams = t.Object({
@@ -64,9 +65,18 @@ export const billingRoutes = new Elysia()
       billingController.createNotchPayCheckout(requireAuth(userId), body.plan),
     { body: planBody }
   )
+  .get("/billing/notchpay/callback", ({ query }) =>
+    billingController.handleNotchPayCallback(
+      query as Record<string, string | undefined>
+    )
+  )
   .post(
     "/billing/notchpay/verify",
     ({ userId, body }) =>
-      billingController.verifyNotchPayPayment(requireAuth(userId), body.reference),
+      billingController.verifyNotchPayPayment(
+        requireAuth(userId),
+        body.reference,
+        body.paymentReference
+      ),
     { body: verifyBody }
   )
