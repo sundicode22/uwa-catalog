@@ -5,9 +5,10 @@ import { ProductCard } from "../product-card"
 interface LayoutProps {
   products: Product[]
   storeSlug: string
+  storeCurrency?: string
 }
 
-export function Grid2Layout({ products, storeSlug }: LayoutProps) {
+export function Grid2Layout({ products, storeSlug, storeCurrency }: LayoutProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {products.map((p) => (
@@ -15,6 +16,7 @@ export function Grid2Layout({ products, storeSlug }: LayoutProps) {
           key={p.id}
           product={p}
           storeSlug={storeSlug}
+          storeCurrency={storeCurrency}
           layout="grid-2"
         />
       ))}
@@ -22,7 +24,7 @@ export function Grid2Layout({ products, storeSlug }: LayoutProps) {
   )
 }
 
-export function Grid3Layout({ products, storeSlug }: LayoutProps) {
+export function Grid3Layout({ products, storeSlug, storeCurrency }: LayoutProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((p) => (
@@ -30,6 +32,7 @@ export function Grid3Layout({ products, storeSlug }: LayoutProps) {
           key={p.id}
           product={p}
           storeSlug={storeSlug}
+          storeCurrency={storeCurrency}
           layout="grid-3"
         />
       ))}
@@ -37,7 +40,7 @@ export function Grid3Layout({ products, storeSlug }: LayoutProps) {
   )
 }
 
-export function Grid4Layout({ products, storeSlug }: LayoutProps) {
+export function Grid4Layout({ products, storeSlug, storeCurrency }: LayoutProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {products.map((p) => (
@@ -45,6 +48,7 @@ export function Grid4Layout({ products, storeSlug }: LayoutProps) {
           key={p.id}
           product={p}
           storeSlug={storeSlug}
+          storeCurrency={storeCurrency}
           layout="grid-4"
         />
       ))}
@@ -52,7 +56,7 @@ export function Grid4Layout({ products, storeSlug }: LayoutProps) {
   )
 }
 
-export function ListLayout({ products, storeSlug }: LayoutProps) {
+export function ListLayout({ products, storeSlug, storeCurrency }: LayoutProps) {
   return (
     <div className="flex flex-col gap-3">
       {products.map((p) => (
@@ -60,6 +64,7 @@ export function ListLayout({ products, storeSlug }: LayoutProps) {
           key={p.id}
           product={p}
           storeSlug={storeSlug}
+          storeCurrency={storeCurrency}
           layout="list"
         />
       ))}
@@ -67,7 +72,7 @@ export function ListLayout({ products, storeSlug }: LayoutProps) {
   )
 }
 
-export function MasonryLayout({ products, storeSlug }: LayoutProps) {
+export function MasonryLayout({ products, storeSlug, storeCurrency }: LayoutProps) {
   return (
     <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
       {products.map((p, i) => (
@@ -75,6 +80,7 @@ export function MasonryLayout({ products, storeSlug }: LayoutProps) {
           <ProductCard
             product={p}
             storeSlug={storeSlug}
+            storeCurrency={storeCurrency}
             layout={i % 3 === 0 ? "list" : "grid-3"}
           />
         </div>
@@ -87,8 +93,9 @@ export function CatalogLayoutRenderer({
   layout,
   products,
   storeSlug,
+  storeCurrency,
 }: LayoutProps & { layout: CatalogLayout }) {
-  const props = { products, storeSlug }
+  const props = { products, storeSlug, storeCurrency }
   switch (layout) {
     case "grid-2":
       return <Grid2Layout {...props} />

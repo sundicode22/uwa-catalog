@@ -24,6 +24,7 @@ export const productHoverOverlayClass =
 interface ProductHoverOverlayProps {
   product: Product
   storeSlug: string
+  storeCurrency?: string
   onOpenOptions: () => void
   onAddToCart: () => void
   showDetails?: boolean
@@ -32,6 +33,7 @@ interface ProductHoverOverlayProps {
 export function ProductHoverOverlay({
   product,
   storeSlug,
+  storeCurrency,
   onOpenOptions,
   onAddToCart,
   showDetails = true,
@@ -40,6 +42,7 @@ export function ProductHoverOverlay({
   const inStock = isInStock(product)
   const inventoryLabel = formatInventoryLabel(product.inventory)
   const productHref = `/c/${storeSlug}/products/${product.slug}`
+  const currency = storeCurrency ?? product.currency
 
   return (
     <div className={productHoverOverlayClass}>
@@ -112,7 +115,7 @@ export function ProductHoverOverlay({
           ) : null}
           <p className="text-base font-semibold tabular-nums whitespace-nowrap sm:text-lg">
             <TagIcon className="mr-1 inline size-3.5 text-white/80" />
-            {formatMoney(product.price, product.currency)}
+            {formatMoney(product.price, currency)}
           </p>
         </div>
       ) : null}
@@ -123,6 +126,7 @@ export function ProductHoverOverlay({
 interface ProductImageFrameProps {
   product: Product
   storeSlug: string
+  storeCurrency?: string
   onOpenOptions: () => void
   onAddToCart: () => void
   className?: string
@@ -133,6 +137,7 @@ interface ProductImageFrameProps {
 export function ProductImageFrame({
   product,
   storeSlug,
+  storeCurrency,
   onOpenOptions,
   onAddToCart,
   className,
@@ -160,6 +165,7 @@ export function ProductImageFrame({
       <ProductHoverOverlay
         product={product}
         storeSlug={storeSlug}
+        storeCurrency={storeCurrency}
         onOpenOptions={onOpenOptions}
         onAddToCart={onAddToCart}
         showDetails={showDetails}

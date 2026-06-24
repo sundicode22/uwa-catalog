@@ -1,6 +1,7 @@
 import { success } from "@/server/lib/response"
 import { serializeStore } from "@/server/lib/serializers"
 import { storeService } from "@/server/services"
+import { subscriptionService } from "@/server/services/subscription.service"
 import { requireAuth } from "../plugins/auth"
 import { forbidden } from "../plugins/errors"
 import type { CreateStoreInput, UpdateStoreInput } from "@/types/domain"
@@ -8,6 +9,7 @@ import type { CreateStoreInput, UpdateStoreInput } from "@/types/domain"
 export const storeController = {
   async list(userId: string | null) {
     const ownerId = requireAuth(userId)
+    await subscriptionService.ensureForUser(ownerId)
     const stores = await storeService.listByOwner(ownerId)
     return success(stores.map(serializeStore))
   },

@@ -22,9 +22,14 @@ const chartConfig = {
 interface OrdersTrendChartProps {
   data: DashboardOrdersTrendPoint[]
   isLoading?: boolean
+  currency?: string
 }
 
-export function OrdersTrendChart({ data, isLoading }: OrdersTrendChartProps) {
+export function OrdersTrendChart({
+  data,
+  isLoading,
+  currency = "USD",
+}: OrdersTrendChartProps) {
   return (
     <Card className="shadow-none">
       <CardHeader className="pb-2">
@@ -61,7 +66,7 @@ export function OrdersTrendChart({ data, isLoading }: OrdersTrendChartProps) {
                             {value} orders
                           </span>
                           <span className="text-muted-foreground">
-                            {formatMoney(revenue)}
+                            {formatMoney(revenue, currency)}
                           </span>
                         </div>
                       )

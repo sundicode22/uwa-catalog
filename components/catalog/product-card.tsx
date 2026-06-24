@@ -12,10 +12,16 @@ import type { CatalogLayout } from "@/types/domain"
 interface ProductCardProps {
   product: Product
   storeSlug: string
+  storeCurrency?: string
   layout: CatalogLayout
 }
 
-export function ProductCard({ product, storeSlug, layout }: ProductCardProps) {
+export function ProductCard({
+  product,
+  storeSlug,
+  storeCurrency,
+  layout,
+}: ProductCardProps) {
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
   const hasOptions = productHasOptions(product)
@@ -35,6 +41,7 @@ export function ProductCard({ product, storeSlug, layout }: ProductCardProps) {
         <ProductImageFrame
           product={product}
           storeSlug={storeSlug}
+          storeCurrency={storeCurrency}
           onOpenOptions={() => setOptionsOpen(true)}
           onAddToCart={handleAddToCart}
           className={cn("w-full", isList ? "aspect-video" : "aspect-square")}
@@ -43,6 +50,7 @@ export function ProductCard({ product, storeSlug, layout }: ProductCardProps) {
 
       <ProductOptionsModal
         product={product}
+        storeCurrency={storeCurrency}
         open={optionsOpen}
         onOpenChange={setOptionsOpen}
         onConfirm={(p, selections) => addItem(p, selections)}

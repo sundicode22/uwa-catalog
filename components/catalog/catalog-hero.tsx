@@ -9,6 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { resolveStoreCurrency } from "@/lib/currency"
 import { formatMoney } from "@/lib/format"
 import { productHasOptions } from "@/lib/product-options"
 import type { Product, StoreWithCategories } from "@/types/domain"
@@ -21,6 +22,8 @@ export function CatalogHero({
   store: StoreWithCategories
   featuredProducts: Product[]
 }) {
+  const currency = resolveStoreCurrency(store)
+
   return (
     <section className="relative overflow-hidden border-b border-border">
       {store.coverImageUrl ? (
@@ -92,7 +95,7 @@ export function CatalogHero({
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{product.name}</p>
                       <p className="shrink-0 text-base font-semibold tabular-nums whitespace-nowrap sm:text-lg">
-                        {formatMoney(product.price, product.currency)}
+                        {formatMoney(product.price, currency)}
                       </p>
                       {productHasOptions(product) ? (
                         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">

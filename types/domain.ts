@@ -308,3 +308,63 @@ export interface ResetPasswordInput {
   token: string
   password: string
 }
+
+export type AccountSubscriptionPlan = "free" | "basic" | "premium"
+export type AccountSubscriptionStatus = "active" | "past_due" | "canceled"
+export type AccountBillingProvider = "none" | "stripe" | "notchpay"
+
+export interface PlanDefinition {
+  id: AccountSubscriptionPlan
+  name: string
+  description: string
+  monthlyPriceUsd: number
+  monthlyPriceXaf: number
+  maxStores: number
+  maxProductsPerStore: number
+  features: string[]
+}
+
+export interface UserSubscription {
+  userId: string
+  plan: AccountSubscriptionPlan
+  status: AccountSubscriptionStatus
+  provider: AccountBillingProvider
+  stripeCustomerId: string | null
+  stripeSubscriptionId: string | null
+  notchpayCustomerRef: string | null
+  currentPeriodStart: string | null
+  currentPeriodEnd: string | null
+  cancelAtPeriodEnd: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BillingUsage {
+  storeCount: number
+  productsByStore: Record<string, number>
+}
+
+export interface BillingLimits {
+  maxStores: number
+  maxProductsPerStore: number
+}
+
+export interface BillingSummary {
+  subscription: UserSubscription
+  usage: BillingUsage
+  plans: PlanDefinition[]
+  limits: BillingLimits
+}
+
+export interface CheckoutSessionResult {
+  url?: string
+  paymentId?: string | null
+  reference?: string
+}
+
+export interface NotchPayVerifyResult {
+  status: "pending" | "processing" | "complete" | "failed" | "canceled" | "expired"
+  reference: string
+  plan: AccountSubscriptionPlan
+  authorizationUrl?: string | null
+}

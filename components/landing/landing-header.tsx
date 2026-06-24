@@ -99,6 +99,11 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                <a href="#pricing">Pricing</a>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                 <a href="#testimonials">Testimonials</a>
               </NavigationMenuLink>
             </NavigationMenuItem>

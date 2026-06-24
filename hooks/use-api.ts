@@ -22,6 +22,7 @@ import type {
   EndpointResponse,
 } from "@/types/endpoints"
 import { ApiClientError, type PaginationMeta } from "@/types/api"
+import { handlePlanLimitError } from "@/lib/billing/plan-limit"
 import { toast } from "sonner"
 
 type QueryOptions<K extends EndpointKey> = Omit<
@@ -111,7 +112,9 @@ export function useApiMutation<K extends EndpointKey>(
       onSuccess?.(data, variables, context, mutation)
     },
     onError: (error, variables, context, mutation) => {
-      toast.error(error.message)
+      if (!handlePlanLimitError(error)) {
+        toast.error(error.message)
+      }
       onError?.(error, variables, context, mutation)
     },
     ...rest,

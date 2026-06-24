@@ -163,7 +163,6 @@ export default function ProductsPage() {
             name: values.name,
             description: values.description,
             price: values.price,
-            currency: values.currency,
             images: values.images,
             isFeatured: values.isFeatured,
             inventory: values.inventory,

@@ -7,6 +7,7 @@ import { StorePreviewBanner } from "@/components/catalog/store-preview-banner"
 import { UnpublishedStorePage } from "@/components/catalog/unpublished-store"
 import { JsonLd } from "@/components/seo/json-ld"
 import { getStoreBySlug } from "@/lib/catalog/get-store-by-slug"
+import { resolveStoreCurrency } from "@/lib/currency"
 import { buildProductJsonLd } from "@/lib/seo/json-ld"
 import { buildProductMetadata } from "@/lib/seo/metadata"
 import { productOptionsService } from "@/server/services/product-options.service"
@@ -72,6 +73,8 @@ export async function generateMetadata({
   const data = await getProductPageData(storeSlug, productSlug)
   if (!data) return {}
 
+  const currency = resolveStoreCurrency(data.store)
+
   return buildProductMetadata({
     productName: data.product.name,
     productSlug: data.product.slug,
@@ -79,7 +82,7 @@ export async function generateMetadata({
     storeSlug: data.store.slug,
     description: data.product.description,
     price: data.product.price,
-    currency: data.product.currency,
+    currency,
     images: data.product.images ?? [],
     isPublished: data.store.isPublished,
   })
@@ -102,6 +105,7 @@ export default async function ProductDetailPage({
   }
 
   const isPremium = data.store.storefrontTier === "premium"
+  const currency = resolveStoreCurrency(data.store)
 
   return (
     <>
@@ -113,7 +117,7 @@ export default async function ProductDetailPage({
             productSlug: data.product.slug,
             description: data.product.description,
             price: data.product.price,
-            currency: data.product.currency,
+            currency,
             images: data.product.images ?? [],
             storeName: data.store.name,
             storeSlug: data.store.slug,

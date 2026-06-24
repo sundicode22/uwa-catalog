@@ -9,6 +9,7 @@ import {
   ShoppingCartIcon,
   SettingsIcon,
   StoreIcon,
+  CreditCardIcon,
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -50,6 +51,12 @@ const navItems = [
     title: "Orders",
     url: "/dashboard/orders",
     icon: <ShoppingCartIcon />,
+    items: [],
+  },
+  {
+    title: "Billing",
+    url: "/dashboard/billing",
+    icon: <CreditCardIcon />,
     items: [],
   },
   {

@@ -1,8 +1,10 @@
 import { eq, and, ilike, count, desc, gte, sql, or } from "drizzle-orm"
 import { db, stores, categories, products, orders } from "@/lib/db"
 import { slugify, paginationMeta } from "@/server/lib/response"
+import { formatSelectionsLabel } from "@/lib/product-options"
 import { productOptionsService } from "./product-options.service"
 import { orderItemsService } from "./order-items.service"
+import { subscriptionService } from "./subscription.service"
 import { serializeOrder } from "@/server/lib/serializers"
 import { notFound, forbidden, badRequest } from "@/server/elysia/plugins/errors"
 import type {
@@ -41,6 +43,7 @@ export const storeService = {
   },
 
   async create(ownerId: string, input: CreateStoreInput) {
+    await subscriptionService.assertCanCreateStore(ownerId)
     let slug = slugify(input.name)
     const existing = await db.select().from(stores).where(eq(stores.slug, slug))
     if (existing.length > 0) slug = `${slug}-${Date.now()}`
@@ -60,6 +63,11 @@ export const storeService = {
 
   async update(id: string, ownerId: string, input: UpdateStoreInput) {
     await storeService.assertOwner(id, ownerId)
+
+    if (input.storefrontTier === "premium") {
+      await subscriptionService.assertCanUsePremiumStorefront(ownerId)
+    }
+
     const [store] = await db
       .update(stores)
       .set({ ...input, updatedAt: new Date() })
@@ -357,6 +365,7 @@ export const productService = {
   },
 
   async create(userId: string, input: CreateProductInput) {
+    await subscriptionService.assertCanCreateProduct(userId, input.storeId)
     await storeService.assertOwner(input.storeId, userId)
     const store = await storeService.getById(input.storeId)
     const slug = slugify(input.name)
@@ -369,7 +378,7 @@ export const productService = {
         slug,
         description: input.description,
         price: input.price,
-        currency: input.currency ?? store.currency ?? "USD",
+        currency: store.currency ?? "USD",
         images: input.images ?? [],
         isActive: input.isActive ?? true,
         isFeatured: input.isFeatured ?? false,
@@ -391,13 +400,15 @@ export const productService = {
   async update(id: string, userId: string, input: UpdateProductInput) {
     const existing = await productService.getById(id)
     await storeService.assertOwner(existing.storeId, userId)
+    const store = await storeService.getById(existing.storeId)
 
-    const { sizes, variations, modifiers, ...productFields } = input
+    const { sizes, variations, modifiers, currency: _currency, ...productFields } = input
 
     const [product] = await db
       .update(products)
       .set({
         ...productFields,
+        currency: store.currency ?? "USD",
         ...(input.name ? { slug: slugify(input.name) } : {}),
         updatedAt: new Date(),
       })
@@ -563,10 +574,14 @@ export const orderService = {
       `Phone: ${customerPhone}`,
       ``,
       `*Items:*`,
-      ...items.map(
-        (item) =>
-          `- ${item.displayName ?? item.name} x${item.quantity} @ ${item.price}`
-      ),
+      ...items.map((item) => {
+        const label =
+          item.displayName ??
+          (item.selections
+            ? `${item.name} (${formatSelectionsLabel(item.selections)})`
+            : item.name)
+        return `- ${label} x${item.quantity} @ ${item.price}`
+      }),
       ``,
       `*Total:* ${items.reduce((s, i) => s + parseFloat(i.price) * i.quantity, 0).toFixed(2)}`,
     ]

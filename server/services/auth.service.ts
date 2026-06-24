@@ -3,6 +3,7 @@ import { hash } from "bcryptjs"
 import { and, eq, gt } from "drizzle-orm"
 import { db, users, verificationTokens } from "@/lib/db"
 import { AppError } from "@/server/elysia/plugins/errors"
+import { subscriptionService } from "@/server/services/subscription.service"
 import type {
   ForgotPasswordInput,
   RegisterInput,
@@ -37,6 +38,8 @@ export const authService = {
         passwordHash,
       })
       .returning()
+
+    await subscriptionService.ensureForUser(user.id)
 
     return { id: user.id, email: user.email }
   },

@@ -30,10 +30,12 @@ const PRODUCTS_PER_PAGE = 12
 function ProductTile({
   product,
   storeSlug,
+  storeCurrency,
   badge,
 }: {
   product: Product
   storeSlug: string
+  storeCurrency?: string
   badge?: string
 }) {
   const { addItem } = useCart()
@@ -54,6 +56,7 @@ function ProductTile({
         <ProductImageFrame
           product={product}
           storeSlug={storeSlug}
+          storeCurrency={storeCurrency}
           onOpenOptions={() => setOptionsOpen(true)}
           onAddToCart={handleAddToCart}
           className="aspect-4/5 w-full bg-neutral-100"
@@ -67,6 +70,7 @@ function ProductTile({
 
       <ProductOptionsModal
         product={product}
+        storeCurrency={storeCurrency}
         open={optionsOpen}
         onOpenChange={setOptionsOpen}
         onConfirm={(p, selections) => addItem(p, selections)}
@@ -199,6 +203,7 @@ export function PremiumCatalog({ store }: { store: StoreWithCategories }) {
                     <ProductTile
                       product={product}
                       storeSlug={store.slug}
+                      storeCurrency={store.currency}
                       badge={index === 1 ? "New" : undefined}
                     />
                   </CarouselItem>
@@ -343,7 +348,12 @@ export function PremiumCatalog({ store }: { store: StoreWithCategories }) {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {products.map((product) => (
-                <ProductTile key={product.id} product={product} storeSlug={store.slug} />
+                <ProductTile
+                  key={product.id}
+                  product={product}
+                  storeSlug={store.slug}
+                  storeCurrency={store.currency}
+                />
               ))}
             </div>
           )}

@@ -28,6 +28,25 @@ export const orderStatusEnum = pgEnum("order_status", [
 ])
 export const orderSourceEnum = pgEnum("order_source", ["whatsapp", "checkout"])
 export const storefrontTierEnum = pgEnum("storefront_tier", ["basic", "premium"])
+export const subscriptionPlanEnum = pgEnum("subscription_plan", ["free", "basic", "premium"])
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "active",
+  "past_due",
+  "canceled",
+])
+export const billingProviderEnum = pgEnum("billing_provider", [
+  "none",
+  "stripe",
+  "notchpay",
+])
+export const billingTransactionStatusEnum = pgEnum("billing_transaction_status", [
+  "pending",
+  "processing",
+  "complete",
+  "failed",
+  "canceled",
+  "expired",
+])
 export const paymentProviderEnum = pgEnum("payment_provider", [
   "stripe",
   "paystack",
@@ -48,6 +67,87 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 })
+
+export const userSubscriptions = pgTable("user_subscriptions", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  plan: subscriptionPlanEnum("plan").default("free").notNull(),
+  status: subscriptionStatusEnum("status").default("active").notNull(),
+  provider: billingProviderEnum("provider").default("none").notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  notchpayCustomerRef: text("notchpay_customer_ref"),
+  currentPeriodStart: timestamp("current_period_start", { mode: "date" }),
+  currentPeriodEnd: timestamp("current_period_end", { mode: "date" }),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+})
+
+export const billingCustomers = pgTable(
+  "billing_customers",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: billingProviderEnum("provider").notNull(),
+    externalCustomerId: text("external_customer_id"),
+    externalReference: text("external_reference"),
+    email: text("email"),
+    name: text("name"),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("billing_customers_user_provider_idx").on(
+      table.userId,
+      table.provider
+    ),
+    index("billing_customers_provider_ref_idx").on(
+      table.provider,
+      table.externalReference
+    ),
+  ]
+)
+
+export const billingTransactions = pgTable(
+  "billing_transactions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: billingProviderEnum("provider").notNull(),
+    plan: subscriptionPlanEnum("plan").notNull(),
+    status: billingTransactionStatusEnum("status").default("pending").notNull(),
+    currency: text("currency").notNull(),
+    amount: integer("amount").notNull(),
+    externalTransactionId: text("external_transaction_id"),
+    externalCustomerId: text("external_customer_id"),
+    externalReference: text("external_reference").notNull(),
+    checkoutUrl: text("checkout_url"),
+    paymentMethod: text("payment_method"),
+    paidAt: timestamp("paid_at", { mode: "date" }),
+    lastPayload: jsonb("last_payload"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("billing_transactions_reference_idx").on(table.externalReference),
+    uniqueIndex("billing_transactions_provider_transaction_idx").on(
+      table.provider,
+      table.externalTransactionId
+    ),
+    index("billing_transactions_user_idx").on(table.userId),
+  ]
+)
 
 export const accounts = pgTable(
   "accounts",

@@ -9,7 +9,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { formatMoney } from "@/lib/format"
+import { formatMoney, formatMoneyCompact } from "@/lib/format"
 import type { DashboardOrdersTrendPoint } from "@/types/domain"
 
 const chartConfig = {
@@ -22,9 +22,10 @@ const chartConfig = {
 interface RevenueChartProps {
   data: DashboardOrdersTrendPoint[]
   isLoading?: boolean
+  currency?: string
 }
 
-export function RevenueChart({ data, isLoading }: RevenueChartProps) {
+export function RevenueChart({ data, isLoading, currency = "USD" }: RevenueChartProps) {
   const chartData = data.map((point) => ({
     ...point,
     revenueValue: parseFloat(point.revenue) || 0,
@@ -69,16 +70,14 @@ export function RevenueChart({ data, isLoading }: RevenueChartProps) {
                 tickLine={false}
                 axisLine={false}
                 width={48}
-                tickFormatter={(value) =>
-                  value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`
-                }
+                tickFormatter={(value) => formatMoneyCompact(value as number, currency)}
               />
               <ChartTooltip
                 content={
                   <ChartTooltipContent
                     formatter={(value) => (
                       <span className="font-mono font-medium">
-                        {formatMoney(value as number)}
+                        {formatMoney(value as number, currency)}
                       </span>
                     )}
                   />

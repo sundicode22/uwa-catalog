@@ -10,6 +10,7 @@ import { StorefrontFooter } from "@/components/catalog/storefront-footer"
 import { StorefrontHeader } from "@/components/catalog/storefront-header"
 import { useCart } from "@/components/catalog/cart-context"
 import { productHasOptions } from "@/lib/product-options"
+import { resolveStoreCurrency } from "@/lib/currency"
 import { formatMoney } from "@/lib/format"
 import { formatInventoryLabel, formatStockRemaining, isInStock } from "@/lib/inventory"
 import type { Category, Product, StoreWithCategories } from "@/types/domain"
@@ -33,6 +34,8 @@ export function ProductPageClient({
   const hasOptions = productHasOptions(product)
   const stockLabel =
     formatStockRemaining(product, items) ?? formatInventoryLabel(product.inventory)
+
+  const currency = resolveStoreCurrency(store)
 
   function handleAddToCart() {
     if (hasOptions) {
@@ -106,7 +109,7 @@ export function ProductPageClient({
             {product.name}
           </h1>
           <p className="text-2xl font-semibold tabular-nums whitespace-nowrap sm:text-3xl">
-            {formatMoney(product.price, product.currency)}
+            {formatMoney(product.price, currency)}
           </p>
           {product.description ? (
             <p className="max-w-lg leading-relaxed text-foreground/70">
@@ -146,6 +149,7 @@ export function ProductPageClient({
 
       <ProductOptionsModal
         product={product}
+        storeCurrency={store.currency}
         open={optionsOpen}
         onOpenChange={setOptionsOpen}
         onConfirm={(p, selections) => addItem(p, selections)}

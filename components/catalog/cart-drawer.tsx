@@ -21,6 +21,8 @@ import { useCart } from "./cart-context"
 import { useCreateOrder } from "@/hooks/use-orders"
 import { formatSelectionsLabel } from "@/lib/product-options"
 import { formatMoney } from "@/lib/format"
+import { absoluteUrl } from "@/lib/seo/site"
+import { getProductPath } from "@/lib/seo/paths"
 import {
   formatStockRemaining,
   getMaxCartQuantity,
@@ -49,6 +51,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       displayName?: string
       price: string
       quantity: number
+      productSlug: string
       selections?: Parameters<typeof formatSelectionsLabel>[0]
     }[]
   ) {
@@ -60,14 +63,15 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       ``,
       `*Items:*`,
       ...orderItems.map((item) => {
-        const extras = item.selections ? formatSelectionsLabel(item.selections) : ""
-        const label = extras
-          ? `${item.displayName ?? item.name} (${extras})`
-          : item.displayName ?? item.name
-        return `- ${label} x${item.quantity} @ ${item.price}`
+        const label = item.displayName ?? item.name
+        const productUrl = absoluteUrl(getProductPath(store.slug, item.productSlug))
+        return [
+          `- ${label} x${item.quantity} @ ${formatMoney(item.price, store.currency)}`,
+          `  ${productUrl}`,
+        ].join("\n")
       }),
       ``,
-      `*Total:* ${total.toFixed(2)}`,
+      `*Total:* ${formatMoney(total, store.currency)}`,
     ].join("\n")
   }
 
@@ -98,6 +102,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       productId: i.product.id,
       name: i.product.name,
       displayName: i.displayName,
+      productSlug: i.product.slug,
       price: i.unitPrice.toFixed(2),
       quantity: i.quantity,
       selections: i.selections,

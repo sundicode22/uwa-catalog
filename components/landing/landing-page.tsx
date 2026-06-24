@@ -7,6 +7,7 @@ import { LandingGallery } from "./landing-gallery"
 import { LandingHeader } from "./landing-header"
 import { LandingHero } from "./landing-hero"
 import { LandingHighlights } from "./landing-highlights"
+import { LandingPricing } from "./landing-pricing"
 import { LandingSteps } from "./landing-steps"
 import { LandingTestimonials } from "./landing-testimonials"
 
@@ -41,6 +42,7 @@ export function LandingPage({ session }: LandingPageProps) {
         <LandingFeatures />
         <LandingHighlights />
         <LandingSteps />
+        <LandingPricing isLoggedIn={isLoggedIn} />
         <LandingTestimonials />
         <LandingFaq />
         <LandingCta isLoggedIn={isLoggedIn} />

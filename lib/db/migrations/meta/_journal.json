@@ -29,6 +29,34 @@
       "when": 1782223105457,
       "tag": "0003_charming_mac_gargan",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782258869531,
+      "tag": "0004_bizarre_eddie_brock",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782280800000,
+      "tag": "0005_user_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782281400000,
+      "tag": "0006_billing_transactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782293066491,
+      "tag": "0007_mushy_alice",
+      "breakpoints": true
     }
   ]
 }

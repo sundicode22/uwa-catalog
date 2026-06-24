@@ -30,6 +30,8 @@ import { ProductOptionsEditor } from "@/components/products/variations-modifiers
 import { useCategories } from "@/hooks/use-categories"
 import { useProductOptions } from "@/hooks/use-products"
 import { useStore } from "@/hooks/use-store"
+import { getCurrencyLabel } from "@/lib/currencies"
+import { resolveStoreCurrency } from "@/lib/currency"
 import { formatMoney } from "@/lib/format"
 import type {
   Product,
@@ -42,7 +44,6 @@ const schema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   price: z.string().min(1, "Price is required"),
-  currency: z.string().min(1),
   categoryId: z.string().optional(),
   images: z.array(z.object({ url: z.string(), publicId: z.string() })),
   isFeatured: z.boolean(),
@@ -74,7 +75,7 @@ export function ProductForm({
 }: ProductFormProps) {
   const { data: categories } = useCategories()
   const { store } = useStore()
-  const storeCurrency = store?.currency ?? "USD"
+  const storeCurrency = resolveStoreCurrency(store)
   const { data: loadedOptions, isLoading: optionsLoading } = useProductOptions(
     product?.id,
     loadOptions && !!product
@@ -89,7 +90,6 @@ export function ProductForm({
       name: "",
       description: "",
       price: "",
-      currency: "USD",
       categoryId: "",
       images: [],
       isFeatured: false,
@@ -104,7 +104,6 @@ export function ProductForm({
         name: product.name,
         description: product.description ?? "",
         price: product.price,
-        currency: product.currency ?? storeCurrency,
         categoryId: product.categoryId ?? "",
         images: product.images ?? [],
         isFeatured: product.isFeatured ?? false,
@@ -116,7 +115,6 @@ export function ProductForm({
         name: "",
         description: "",
         price: "",
-        currency: storeCurrency,
         categoryId: "",
         images: [],
         isFeatured: false,
@@ -150,7 +148,6 @@ export function ProductForm({
             ...rest,
             trackInventory,
             inventory: Number.isNaN(parsedInventory) ? 0 : parsedInventory,
-            currency: storeCurrency,
             sizes: sizes.filter((s) => s.name.trim()),
             variations: variations.filter((g) => g.name.trim()),
             modifiers: modifiers.filter((g) => g.name.trim()),
@@ -201,7 +198,7 @@ export function ProductForm({
             <FormItem>
               <FormLabel>Currency</FormLabel>
               <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-                {storeCurrency} — set in{" "}
+                {getCurrencyLabel(storeCurrency)} — set in{" "}
                 <a href="/dashboard/settings" className="text-primary underline-offset-4 hover:underline">
                   store settings
                 </a>

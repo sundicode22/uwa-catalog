@@ -96,7 +96,7 @@ export function getStoreColumns(actions: {
     },
     {
       accessorKey: "storefrontTier",
-      header: "Plan",
+      header: "Storefront",
       cell: ({ row }) => (
         <Badge variant="outline">
           {row.original.storefrontTier === "premium" ? "Premium" : "Basic"}

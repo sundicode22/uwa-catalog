@@ -17,6 +17,7 @@ import { StatCard } from "@/components/dashboard/stat-card"
 import { DashboardWelcome } from "@/components/dashboard/dashboard-welcome"
 import { useStore, useStoreStats } from "@/hooks/use-store"
 import { formatMoney } from "@/lib/format"
+import { resolveStoreCurrency } from "@/lib/currency"
 
 export default function DashboardPage() {
   const { store, stores } = useStore()
@@ -25,6 +26,8 @@ export default function DashboardPage() {
   if (!store && stores.length === 0) {
     return <DashboardWelcome />
   }
+
+  const currency = resolveStoreCurrency(store)
 
   return (
     <div className="space-y-6">
@@ -36,7 +39,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total revenue"
-          value={formatMoney(stats?.totalRevenue ?? "0")}
+          value={formatMoney(stats?.totalRevenue ?? "0", currency)}
           hint={`${stats?.totalOrders ?? 0} lifetime orders`}
           icon={BanknoteIcon}
           isLoading={isLoading}
@@ -68,8 +71,13 @@ export default function DashboardPage() {
         <OrdersTrendChart
           data={stats?.ordersTrend ?? []}
           isLoading={isLoading}
+          currency={currency}
         />
-        <RevenueChart data={stats?.ordersTrend ?? []} isLoading={isLoading} />
+        <RevenueChart
+          data={stats?.ordersTrend ?? []}
+          isLoading={isLoading}
+          currency={currency}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

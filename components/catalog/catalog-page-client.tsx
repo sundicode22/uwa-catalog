@@ -120,6 +120,7 @@ export function CatalogPageClient({ store }: { store: StoreWithCategories }) {
             layout={layout}
             products={products}
             storeSlug={store.slug}
+            storeCurrency={store.currency}
           />
         )}
       </div>

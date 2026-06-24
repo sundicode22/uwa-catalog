@@ -22,6 +22,10 @@ import type {
   RegisterResult,
   ForgotPasswordInput,
   ResetPasswordInput,
+  BillingSummary,
+  CheckoutSessionResult,
+  NotchPayVerifyResult,
+  AccountSubscriptionPlan,
 } from "./domain"
 import type { PaginationQuery, Paginated } from "./api"
 
@@ -108,6 +112,21 @@ export interface ApiEndpoints {
   "GET /stores/:storeId/payment-providers": {
     params: { storeId: string }
     response: PaymentProviderConfig[]
+  }
+
+  "GET /billing": { response: BillingSummary }
+  "POST /billing/stripe/checkout": {
+    body: { plan: Exclude<AccountSubscriptionPlan, "free"> }
+    response: CheckoutSessionResult
+  }
+  "POST /billing/stripe/portal": { response: CheckoutSessionResult }
+  "POST /billing/notchpay/checkout": {
+    body: { plan: Exclude<AccountSubscriptionPlan, "free"> }
+    response: CheckoutSessionResult
+  }
+  "POST /billing/notchpay/verify": {
+    body: { reference: string }
+    response: NotchPayVerifyResult
   }
 }
 

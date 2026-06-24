@@ -43,6 +43,7 @@ import { useCart } from "./cart-context"
 
 interface ProductOptionsModalProps {
   product: Product | null
+  storeCurrency?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: (product: Product, selections: ProductSelections, unitPrice: number) => void
@@ -146,6 +147,7 @@ function VariationPicker({
 
 export function ProductOptionsModal({
   product,
+  storeCurrency,
   open,
   onOpenChange,
   onConfirm,
@@ -164,6 +166,7 @@ export function ProductOptionsModal({
 
   if (!product) return null
 
+  const currency = storeCurrency ?? product.currency
   const sizes = options?.sizes.filter((s) => s.isActive !== false) ?? []
   const variations = options?.variations ?? []
   const modifiers = options?.modifiers ?? []
@@ -272,7 +275,7 @@ export function ProductOptionsModal({
             <div className="min-w-0 space-y-1">
               <p className="font-medium">{product.name}</p>
               <p className="text-sm text-muted-foreground">
-                Base price: {formatMoney(product.price, product.currency)}
+                Base price: {formatMoney(product.price, currency)}
               </p>
               {inventoryLabel ? (
                 <p
@@ -314,7 +317,7 @@ export function ProductOptionsModal({
                     <SelectContent>
                       {sizes.map((size) => (
                         <SelectItem key={size.id} value={size.id}>
-                          {optionLabel(size.name, size.priceAdjustment, product.currency)}
+                          {optionLabel(size.name, size.priceAdjustment, currency)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -332,7 +335,7 @@ export function ProductOptionsModal({
                   </Label>
                   <VariationPicker
                     group={group}
-                    currency={product.currency}
+                    currency={currency}
                     selectedOptionId={
                       selections.variations.find((v) => v.groupId === group.id)
                         ?.optionId
@@ -385,7 +388,7 @@ export function ProductOptionsModal({
                                 {optionLabel(
                                   option.name,
                                   option.priceAdjustment,
-                                  product.currency
+                                  currency
                                 )}
                               </span>
                             </SelectItem>
@@ -411,7 +414,7 @@ export function ProductOptionsModal({
                         )
                         const adj = formatAdjustment(
                           option.priceAdjustment,
-                          product.currency
+                          currency
                         )
                         return (
                           <label
@@ -462,7 +465,7 @@ export function ProductOptionsModal({
           <div className="flex items-center justify-between border-t border-border pt-4 text-lg font-semibold sm:text-xl">
             <span>Total</span>
             <span className="tabular-nums whitespace-nowrap">
-              {formatMoney(unitPrice, product.currency)}
+              {formatMoney(unitPrice, currency)}
             </span>
           </div>
         </ModalForm>
