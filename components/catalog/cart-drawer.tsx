@@ -176,16 +176,17 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       <Modal
         open={cartOpen}
         onOpenChange={setCartOpen}
+        mobileFullscreen
         className="border-0 shadow-lg"
       >
         <ModalHeader
-          className="border-0"
+          className="border-0 px-4 sm:px-6"
           onClose={() => setCartOpen(false)}
         >
           <ModalTitle>Your Cart ({itemCount})</ModalTitle>
         </ModalHeader>
-        <ModalBody>
-          <ModalForm className="space-y-4">
+        <ModalBody className="px-4 sm:px-6">
+          <ModalForm className="my-0 max-w-none space-y-4">
           {items.length === 0 ? (
             <p className="py-8 text-center text-muted-foreground">Your cart is empty</p>
           ) : (
@@ -346,7 +347,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
           </ModalForm>
         </ModalBody>
         {items.length > 0 && (
-          <ModalFooter className="border-0">
+          <ModalFooter className="border-0 px-4 sm:px-6">
             <Button
               className="w-full gap-2"
               disabled={!customerName || !phoneValid || createOrder.isPending}
