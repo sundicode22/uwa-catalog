@@ -83,7 +83,7 @@ export function CustomerFormModal({
   }, [customer, form, open])
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange}>
+    <Modal open={open} onOpenChange={onOpenChange} mobileFullscreen>
       <ModalHeader onClose={() => onOpenChange(false)}>
         <ModalTitle>{customer ? "Edit Customer" : "Add Customer"}</ModalTitle>
       </ModalHeader>

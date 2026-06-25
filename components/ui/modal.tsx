@@ -12,9 +12,16 @@ interface ModalProps {
   onOpenChange: (open: boolean) => void
   children: React.ReactNode
   className?: string
+  mobileFullscreen?: boolean
 }
 
-function Modal({ open, onOpenChange, children, className }: ModalProps) {
+function Modal({
+  open,
+  onOpenChange,
+  children,
+  className,
+  mobileFullscreen = false,
+}: ModalProps) {
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -37,7 +44,12 @@ function Modal({ open, onOpenChange, children, className }: ModalProps) {
   if (!mounted || !open) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex items-center justify-center p-4",
+        mobileFullscreen && "p-0 sm:p-4"
+      )}
+    >
       <div
         className="absolute inset-0 bg-black/50"
         onClick={() => onOpenChange(false)}
@@ -48,6 +60,8 @@ function Modal({ open, onOpenChange, children, className }: ModalProps) {
         aria-modal="true"
         className={cn(
           "relative z-10 flex h-[90vh] w-[70vw] max-h-[90vh] max-w-[70vw] flex-col overflow-hidden rounded-none border border-border bg-background shadow-none",
+          mobileFullscreen &&
+            "h-dvh w-screen max-h-dvh max-w-none border-0 sm:h-[90vh] sm:w-[70vw] sm:max-h-[90vh] sm:max-w-[70vw] sm:border",
           className
         )}
       >
