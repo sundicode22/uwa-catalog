@@ -1,6 +1,16 @@
-import Link from "next/link"
 import { toast } from "sonner"
+import { getPathname } from "@/i18n/navigation"
+import { routing, type Locale } from "@/i18n/routing"
 import { ApiClientError } from "@/types/api"
+
+function resolveClientLocale(): Locale {
+  if (typeof document === "undefined") return routing.defaultLocale
+  const match = document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]*)/)
+  const cookie = match?.[1]
+  return cookie && routing.locales.includes(cookie as Locale)
+    ? (cookie as Locale)
+    : routing.defaultLocale
+}
 
 export function isPlanLimitError(error: unknown): error is ApiClientError {
   return (
@@ -14,7 +24,10 @@ export function showPlanLimitToast(error: ApiClientError) {
     action: {
       label: "Upgrade",
       onClick: () => {
-        window.location.href = "/dashboard/billing"
+        window.location.href = getPathname({
+          locale: resolveClientLocale(),
+          href: "/dashboard/billing",
+        })
       },
     },
   })

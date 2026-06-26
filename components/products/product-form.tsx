@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { FormInput } from "@/components/ui/form-input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -199,9 +200,9 @@ export function ProductForm({
               <FormLabel>Currency</FormLabel>
               <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                 {getCurrencyLabel(storeCurrency)} — set in{" "}
-                <a href="/dashboard/settings" className="text-primary underline-offset-4 hover:underline">
+                <Link href="/dashboard/settings" className="text-primary underline-offset-4 hover:underline">
                   store settings
-                </a>
+                </Link>
               </p>
               <p className="text-xs text-muted-foreground">
                 Preview: {formatMoney(form.watch("price") || "0", storeCurrency)}

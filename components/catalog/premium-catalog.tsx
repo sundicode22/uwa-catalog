@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react"
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { useSearchParams } from "next/navigation"
 import { ArrowRightIcon } from "lucide-react"
 import {

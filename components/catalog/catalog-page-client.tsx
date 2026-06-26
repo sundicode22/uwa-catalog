@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { LayoutSwitcher } from "@/components/catalog/layout-switcher"
 import { CatalogPagination } from "@/components/catalog/catalog-pagination"
 import { CatalogLayoutRenderer } from "@/components/catalog/layouts"

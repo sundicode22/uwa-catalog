@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { useSearchParams } from "next/navigation"
 import { CheckCircle2Icon, ClockIcon, PackageCheckIcon, XCircleIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
