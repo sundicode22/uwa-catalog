@@ -1,10 +1,13 @@
 "use client"
 
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 
 export function OAuthButtons({ callbackUrl = "/dashboard" }: { callbackUrl?: string }) {
+  const t = useTranslations("auth")
+
   return (
     <Button
       type="button"
@@ -19,7 +22,7 @@ export function OAuthButtons({ callbackUrl = "/dashboard" }: { callbackUrl?: str
         height={18}
         className="size-[18px] shrink-0"
       />
-      Continue with Google
+      {t("continueWithGoogle")}
     </Button>
   )
 }

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import {
   LayoutDashboardIcon,
   PackageIcon,
@@ -17,6 +18,7 @@ import {
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { StoreSwitcher } from "@/components/dashboard/store-switcher"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -25,71 +27,72 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-const navItems = [
-  {
-    title: "Overview",
-    url: "/dashboard",
-    icon: <LayoutDashboardIcon />,
-    items: [],
-  },
-  {
-    title: "Stores",
-    url: "/dashboard/stores",
-    icon: <StoreIcon />,
-    items: [],
-  },
-  {
-    title: "Products",
-    url: "/dashboard/products",
-    icon: <PackageIcon />,
-    items: [],
-  },
-  {
-    title: "Categories",
-    url: "/dashboard/categories",
-    icon: <FolderTreeIcon />,
-    items: [],
-  },
-  {
-    title: "Orders",
-    url: "/dashboard/orders",
-    icon: <ShoppingCartIcon />,
-    items: [],
-  },
-  {
-    title: "Customers",
-    url: "/dashboard/customers",
-    icon: <UsersIcon />,
-    items: [],
-  },
-  {
-    title: "Transactions",
-    url: "/dashboard/transactions",
-    icon: <ReceiptIcon />,
-    items: [],
-  },
-  {
-    title: "Share",
-    url: "/dashboard/share",
-    icon: <QrCodeIcon />,
-    items: [],
-  },
-  {
-    title: "Billing",
-    url: "/dashboard/billing",
-    icon: <CreditCardIcon />,
-    items: [],
-  },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: <SettingsIcon />,
-    items: [],
-  },
-]
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
+  const t = useTranslations("nav")
+
+  const navItems = [
+    {
+      title: t("overview"),
+      url: "/dashboard",
+      icon: <LayoutDashboardIcon />,
+      items: [],
+    },
+    {
+      title: t("stores"),
+      url: "/dashboard/stores",
+      icon: <StoreIcon />,
+      items: [],
+    },
+    {
+      title: t("products"),
+      url: "/dashboard/products",
+      icon: <PackageIcon />,
+      items: [],
+    },
+    {
+      title: t("categories"),
+      url: "/dashboard/categories",
+      icon: <FolderTreeIcon />,
+      items: [],
+    },
+    {
+      title: t("orders"),
+      url: "/dashboard/orders",
+      icon: <ShoppingCartIcon />,
+      items: [],
+    },
+    {
+      title: t("customers"),
+      url: "/dashboard/customers",
+      icon: <UsersIcon />,
+      items: [],
+    },
+    {
+      title: t("transactions"),
+      url: "/dashboard/transactions",
+      icon: <ReceiptIcon />,
+      items: [],
+    },
+    {
+      title: t("share"),
+      url: "/dashboard/share",
+      icon: <QrCodeIcon />,
+      items: [],
+    },
+    {
+      title: t("billing"),
+      url: "/dashboard/billing",
+      icon: <CreditCardIcon />,
+      items: [],
+    },
+    {
+      title: t("settings"),
+      url: "/dashboard/settings",
+      icon: <SettingsIcon />,
+      items: [],
+    },
+  ]
 
   return (
     <Sidebar
@@ -104,9 +107,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
+        <div className="px-2 pb-2">
+          <LocaleSwitcher className="w-full" />
+        </div>
         <NavUser
           user={{
-            name: session?.user?.name ?? "User",
+            name: session?.user?.name ?? t("user"),
             email: session?.user?.email ?? "",
             avatar: session?.user?.image ?? "",
           }}

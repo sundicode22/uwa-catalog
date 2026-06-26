@@ -1,4 +1,7 @@
+"use client"
+
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 import {
   LANDING_PREVIEW_PRODUCTS,
   LANDING_STORE_LOGO_IMAGE_ID,
@@ -11,9 +14,11 @@ interface LandingPreviewProps {
 }
 
 export function LandingPreview({ className }: LandingPreviewProps) {
+  const t = useTranslations("landing")
+
   return (
     <div className={cn("relative w-full min-w-0", className)}>
-      <div className="absolute -inset-4 rounded-3xl bg-foreground/[0.03] blur-2xl" />
+      <div className="absolute -inset-4 rounded-3xl bg-foreground/3 blur-2xl" />
       <div className="relative overflow-hidden rounded-2xl border border-border bg-background shadow-[0_24px_80px_-24px_rgb(0_0_0/0.18)]">
         <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-3">
           <div className="flex gap-1.5">
@@ -22,7 +27,7 @@ export function LandingPreview({ className }: LandingPreviewProps) {
             <span className="size-2.5 rounded-full bg-border" />
           </div>
           <div className="mx-auto truncate rounded-md bg-background px-3 py-1 text-[11px] text-muted-foreground">
-            yourstore.com/c/main-store
+            {t("previewUrl")}
           </div>
         </div>
 
@@ -32,19 +37,19 @@ export function LandingPreview({ className }: LandingPreviewProps) {
               <div className="relative size-9 overflow-hidden rounded-full border border-border lg:size-10">
                 <Image
                   src={landingImage(LANDING_STORE_LOGO_IMAGE_ID, 80)}
-                  alt="Main Store"
+                  alt={t("previewStoreName")}
                   fill
                   className="object-cover"
                   sizes="40px"
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold lg:text-base">Main Store</p>
-                <p className="text-xs text-muted-foreground">Curated essentials</p>
+                <p className="text-sm font-semibold lg:text-base">{t("previewStoreName")}</p>
+                <p className="text-xs text-muted-foreground">{t("previewStoreTagline")}</p>
               </div>
             </div>
             <div className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-              Cart · 2
+              {t("previewCart", { count: 2 })}
             </div>
           </div>
 

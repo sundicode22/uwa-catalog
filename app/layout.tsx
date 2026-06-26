@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 import { Inter, Syne } from "next/font/google"
+import { headers } from "next/headers"
 import "./globals.css"
-import { Providers } from "./providers"
 import { getSiteName, getSiteUrl } from "@/lib/seo/site"
+import { routing } from "@/i18n/routing"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,6 +29,12 @@ export const metadata: Metadata = {
   applicationName: siteName,
   alternates: {
     canonical: "/",
+    languages: Object.fromEntries(
+      routing.locales.map((loc) => [
+        loc,
+        loc === routing.defaultLocale ? siteUrl : `${siteUrl}/${loc}`,
+      ])
+    ),
   },
   openGraph: {
     type: "website",
@@ -48,16 +55,21 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const headerStore = await headers()
+  const locale =
+    headerStore.get("x-next-intl-locale") ?? routing.defaultLocale
+
   return (
-    <html lang="en" className={`${inter.variable} ${syne.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
-      </body>
+    <html
+      lang={locale}
+      className={`${inter.variable} ${syne.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   )
 }

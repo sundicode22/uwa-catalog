@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import Autoplay from "embla-carousel-autoplay"
 import {
   Carousel,
@@ -8,10 +9,17 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel"
-import { TESTIMONIALS } from "@/lib/landing/content"
 import { cn } from "@/lib/utils"
 
+type Testimonial = {
+  name: string
+  role: string
+  quote: string
+}
+
 export function LandingTestimonials() {
+  const t = useTranslations("landing")
+  const testimonials = t.raw("testimonials") as Testimonial[]
   const [api, setApi] = useState<CarouselApi>()
   const [selected, setSelected] = useState(0)
 
@@ -33,9 +41,9 @@ export function LandingTestimonials() {
     <section id="testimonials" className="overflow-hidden py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium text-primary">Testimonials</p>
+          <p className="text-sm font-medium text-primary">{t("testimonialsEyebrow")}</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Loved by sellers worldwide
+            {t("testimonialsTitle")}
           </h2>
         </div>
 
@@ -47,12 +55,12 @@ export function LandingTestimonials() {
 
           <div className="relative mx-auto flex max-w-3xl flex-col items-center">
             <div className="relative mb-8 flex size-56 items-center justify-center sm:size-64">
-              {TESTIMONIALS.map((item, index) => {
+              {testimonials.map((item, index) => {
                 const offset = index - selected
                 const normalized =
-                  ((offset + TESTIMONIALS.length + Math.floor(TESTIMONIALS.length / 2)) %
-                    TESTIMONIALS.length) -
-                  Math.floor(TESTIMONIALS.length / 2)
+                  ((offset + testimonials.length + Math.floor(testimonials.length / 2)) %
+                    testimonials.length) -
+                  Math.floor(testimonials.length / 2)
                 const angle = normalized * 42
                 const radius = 108
                 const x = Math.sin((angle * Math.PI) / 180) * radius
@@ -73,7 +81,7 @@ export function LandingTestimonials() {
                     style={{
                       transform: `translate(${x}px, ${y}px) scale(${isActive ? 1.1 : 0.9})`,
                     }}
-                    aria-label={`View testimonial from ${item.name}`}
+                    aria-label={t("viewTestimonial", { name: item.name })}
                   >
                     <span className="sr-only">{item.name}</span>
                   </button>
@@ -93,7 +101,7 @@ export function LandingTestimonials() {
               className="w-full"
             >
               <CarouselContent>
-                {TESTIMONIALS.map((item) => (
+                {testimonials.map((item) => (
                   <CarouselItem key={item.name}>
                     <figure className="mx-auto max-w-2xl text-center">
                       <blockquote className="text-lg leading-relaxed text-foreground/90 sm:text-xl">

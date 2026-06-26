@@ -1,39 +1,41 @@
 import Image from "next/image"
-import Link from "next/link"
 import {
   MessageCircleIcon,
   PaletteIcon,
   SmartphoneIcon,
   ZapIcon,
 } from "lucide-react"
+import { getTranslations } from "next-intl/server"
+import { Link } from "@/i18n/navigation"
 import { LANDING_HIGHLIGHT_COLLAGE, landingImage } from "@/lib/landing/images"
 import { getSiteName } from "@/lib/seo/site"
 
-const HIGHLIGHTS = [
-  {
-    icon: SmartphoneIcon,
-    title: "Mobile-first catalogs",
-    description: "Designed for shoppers on phones — fast browsing, easy checkout.",
-  },
-  {
-    icon: MessageCircleIcon,
-    title: "WhatsApp native",
-    description: "Meet customers where they already chat and buy.",
-  },
-  {
-    icon: PaletteIcon,
-    title: "Brand-ready layouts",
-    description: "Polished storefronts without custom front-end work.",
-  },
-  {
-    icon: ZapIcon,
-    title: "Fast to launch",
-    description: "Go from signup to live catalog link in under an hour.",
-  },
-]
-
-export function LandingHighlights() {
+export async function LandingHighlights() {
+  const t = await getTranslations("landing")
   const siteName = getSiteName()
+
+  const highlights = [
+    {
+      icon: SmartphoneIcon,
+      title: t("highlightMobileTitle"),
+      description: t("highlightMobileDesc"),
+    },
+    {
+      icon: MessageCircleIcon,
+      title: t("highlightWhatsappTitle"),
+      description: t("highlightWhatsappDesc"),
+    },
+    {
+      icon: PaletteIcon,
+      title: t("highlightBrandTitle"),
+      description: t("highlightBrandDesc"),
+    },
+    {
+      icon: ZapIcon,
+      title: t("highlightLaunchTitle"),
+      description: t("highlightLaunchDesc"),
+    },
+  ]
 
   return (
     <section className="py-16 sm:py-20">
@@ -62,23 +64,24 @@ export function LandingHighlights() {
 
             <div className="space-y-6">
               <div className="space-y-4">
-                <p className="text-sm font-medium text-primary">Why {siteName}</p>
+                <p className="text-sm font-medium text-primary">
+                  {t("highlightsEyebrow", { appName: siteName })}
+                </p>
                 <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Built for sellers who move fast
+                  {t("highlightsTitle")}
                 </h2>
                 <p className="max-w-lg text-muted-foreground">
-                  Skip the heavy e-commerce stack. Publish a catalog, manage orders,
-                  and keep inventory aligned — all from one dashboard.
+                  {t("highlightsDescription")}
                 </p>
                 <Link
                   href="/signup"
                   className="inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
                 >
-                  Start your store today →
+                  {t("highlightsCta")}
                 </Link>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                {HIGHLIGHTS.map((item, index) => (
+                {highlights.map((item, index) => (
                   <div
                     key={item.title}
                     className="animate-fade-in-up rounded-2xl border border-border/60 bg-background/80 p-5 backdrop-blur-sm"

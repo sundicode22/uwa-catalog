@@ -1,39 +1,40 @@
 import Image from "next/image"
+import { getTranslations } from "next-intl/server"
 import { LANDING_STEP_IMAGES, landingImage } from "@/lib/landing/images"
 
-const STEPS = [
-  {
-    step: "01",
-    title: "Create your store",
-    description: "Sign up, add your store name, logo, and catalog settings in minutes.",
-  },
-  {
-    step: "02",
-    title: "Add products",
-    description:
-      "Upload images, set prices, track inventory, and configure sizes or add-ons.",
-  },
-  {
-    step: "03",
-    title: "Share & sell",
-    description:
-      "Send your catalog link. Customers order via checkout or WhatsApp — you manage it all.",
-  },
-]
+export async function LandingSteps() {
+  const t = await getTranslations("landing")
 
-export function LandingSteps() {
+  const steps = [
+    {
+      step: "01",
+      title: t("step1Title"),
+      description: t("step1Desc"),
+    },
+    {
+      step: "02",
+      title: t("step2Title"),
+      description: t("step2Desc"),
+    },
+    {
+      step: "03",
+      title: t("step3Title"),
+      description: t("step3Desc"),
+    },
+  ]
+
   return (
     <section id="how-it-works" className="py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium text-primary">How it works</p>
+          <p className="text-sm font-medium text-primary">{t("stepsEyebrow")}</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Live in three steps
+            {t("stepsTitle")}
           </h2>
         </div>
 
         <div className="mt-12 grid gap-8 md:grid-cols-3">
-          {STEPS.map((item, index) => (
+          {steps.map((item, index) => (
             <div
               key={item.step}
               className="animate-fade-in-up group overflow-hidden rounded-2xl border border-border/60 bg-card/50"

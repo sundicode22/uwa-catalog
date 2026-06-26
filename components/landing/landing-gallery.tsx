@@ -1,22 +1,22 @@
 import Image from "next/image"
+import { getTranslations } from "next-intl/server"
 import {
   LANDING_GALLERY_IMAGES,
   landingImage,
 } from "@/lib/landing/images"
 
-export function LandingGallery() {
+export async function LandingGallery() {
+  const t = await getTranslations("landing")
+
   return (
     <section className="border-b border-border py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto mb-10 max-w-2xl text-center">
-          <p className="text-sm font-medium text-primary">Storefronts in the wild</p>
+          <p className="text-sm font-medium text-primary">{t("galleryEyebrow")}</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Simple products, beautiful catalogs
+            {t("galleryTitle")}
           </h2>
-          <p className="mt-3 text-muted-foreground">
-            Totes, mugs, sneakers, candles, and more — showcase everyday products
-            with clean photos and layouts that sell.
-          </p>
+          <p className="mt-3 text-muted-foreground">{t("galleryDescription")}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:grid-rows-2 md:gap-4">

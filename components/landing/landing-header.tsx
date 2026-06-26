@@ -1,9 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { MenuIcon } from "lucide-react"
+import { Link } from "@/i18n/navigation"
 import { AppLogo } from "@/components/brand/app-logo"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import { Button } from "@/components/ui/button"
 import {
   NavigationMenu,
@@ -21,7 +23,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { LANDING_NAV } from "@/lib/landing/content"
 import { cn } from "@/lib/utils"
 import { LandingUserMenu } from "./landing-user-menu"
 
@@ -35,7 +36,40 @@ interface LandingHeaderProps {
 }
 
 export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
+  const t = useTranslations("nav")
+  const tLanding = useTranslations("landing")
   const [scrolled, setScrolled] = useState(false)
+
+  const features = [
+    {
+      title: tLanding("navStorefronts"),
+      href: "#features",
+      description: tLanding("navStorefrontsDesc"),
+    },
+    {
+      title: tLanding("navInventory"),
+      href: "#features",
+      description: tLanding("navInventoryDesc"),
+    },
+    {
+      title: tLanding("navOptions"),
+      href: "#features",
+      description: tLanding("navOptionsDesc"),
+    },
+    {
+      title: tLanding("navWhatsapp"),
+      href: "#features",
+      description: tLanding("navWhatsappDesc"),
+    },
+  ]
+
+  const productLinks = [
+    { label: t("features"), href: "#features" },
+    { label: t("howItWorks"), href: "#how-it-works" },
+    { label: t("pricing"), href: "#pricing" },
+    { label: t("testimonials"), href: "#testimonials" },
+    { label: t("faq"), href: "#faq" },
+  ]
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -62,10 +96,10 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
         >
           <NavigationMenuList className="gap-1">
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Features</NavigationMenuTrigger>
+              <NavigationMenuTrigger>{t("features")}</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[420px] gap-1 p-2 md:grid-cols-2">
-                  {LANDING_NAV.features.map((item) => (
+                  {features.map((item) => (
                     <li key={item.title}>
                       <NavigationMenuLink asChild>
                         <a
@@ -85,42 +119,43 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="#how-it-works">How it works</a>
+                <a href="#how-it-works">{t("howItWorks")}</a>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="#pricing">Pricing</a>
+                <a href="#pricing">{t("pricing")}</a>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="#testimonials">Testimonials</a>
+                <a href="#testimonials">{t("testimonials")}</a>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="#faq">FAQ</a>
+                <a href="#faq">{t("faq")}</a>
               </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 
         <div className="flex shrink-0 items-center justify-end gap-2 justify-self-end">
+          <LocaleSwitcher className="hidden h-9 w-[7.5rem] sm:flex" />
           {isLoggedIn && user ? (
             <>
               <Button asChild size="sm" className="hidden sm:inline-flex">
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/dashboard">{t("dashboard")}</Link>
               </Button>
               <LandingUserMenu user={user} />
             </>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-                <Link href="/login">Log in</Link>
+                <Link href="/login">{t("login")}</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/signup">Get started</Link>
+                <Link href="/signup">{t("signup")}</Link>
               </Button>
             </>
           )}
@@ -129,16 +164,16 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="lg:hidden">
                 <MenuIcon className="size-4" />
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{t("openMenu")}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
               <SheetHeader>
-                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <SheetTitle className="sr-only">{t("menu")}</SheetTitle>
                 <AppLogo size="md" />
               </SheetHeader>
               <nav className="mt-6 flex flex-col gap-1">
-                {LANDING_NAV.product.map((item) => (
+                {productLinks.map((item) => (
                   <a
                     key={item.label}
                     href={item.href}
@@ -148,12 +183,13 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
                   </a>
                 ))}
                 <div className="my-3 border-t border-border" />
+                <LocaleSwitcher className="mb-2 w-full" />
                 {isLoggedIn ? (
                   <Link
                     href="/dashboard"
                     className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                   >
-                    Dashboard
+                    {t("dashboard")}
                   </Link>
                 ) : (
                   <>
@@ -161,13 +197,13 @@ export function LandingHeader({ isLoggedIn, user }: LandingHeaderProps) {
                       href="/login"
                       className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                     >
-                      Log in
+                      {t("login")}
                     </Link>
                     <Link
                       href="/signup"
                       className="rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-medium text-primary-foreground"
                     >
-                      Get started
+                      {t("signup")}
                     </Link>
                   </>
                 )}

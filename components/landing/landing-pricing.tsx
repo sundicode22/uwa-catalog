@@ -1,4 +1,5 @@
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
+import { Link } from "@/i18n/navigation"
 import {
   CheckIcon,
   CreditCardIcon,
@@ -16,32 +17,32 @@ interface LandingPricingProps {
   plans: PlanDefinition[]
 }
 
-export function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
+export async function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
+  const t = await getTranslations("landing")
+  const tCommon = await getTranslations("common")
+
   return (
     <section id="pricing" className="border-b border-border py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="overflow-hidden rounded-3xl border border-border bg-brand-gradient-hero p-8 sm:p-12">
           <div className="mx-auto max-w-2xl text-center animate-fade-in-up">
-            <p className="text-sm font-medium text-primary">Pricing</p>
+            <p className="text-sm font-medium text-primary">{t("pricingEyebrow")}</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Simple plans that grow with you
+              {t("pricingTitle")}
             </h2>
-            <p className="mt-4 text-muted-foreground">
-              Start free, then upgrade when you need more stores, products, or
-              premium storefront layouts.
-            </p>
+            <p className="mt-4 text-muted-foreground">{t("pricingDescription")}</p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
               <Badge
                 variant="secondary"
                 className="gap-1.5 bg-background/80 opacity-50"
-                title="Coming soon"
+                title={t("comingSoon")}
               >
                 <CreditCardIcon className="size-3.5" />
-                Stripe · Coming soon
+                {t("stripeComingSoon")}
               </Badge>
               <Badge variant="secondary" className="gap-1.5 bg-background/80">
                 <SmartphoneIcon className="size-3.5" />
-                NotchPay · XAF
+                {t("notchPayBadge")}
               </Badge>
             </div>
           </div>
@@ -57,9 +58,9 @@ export function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
                 : "/signup"
               const ctaLabel = isLoggedIn
                 ? isFree
-                  ? "Go to dashboard"
-                  : "Upgrade plan"
-                : "Get started"
+                  ? t("goToDashboard")
+                  : t("upgradePlan")
+                : t("getStarted")
 
               return (
                 <div
@@ -73,7 +74,7 @@ export function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
                 >
                   {isPopular ? (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      Most popular
+                      {t("mostPopular")}
                     </Badge>
                   ) : null}
 
@@ -96,20 +97,21 @@ export function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
                   <div className="mt-6 border-b border-border/60 pb-6">
                     <p className="text-3xl font-semibold tracking-tight">
                       {isFree ? (
-                        "Free"
+                        tCommon("free")
                       ) : (
                         <>
                           {formatMoney(plan.monthlyPriceUsd, "USD")}
                           <span className="text-base font-normal text-muted-foreground">
-                            /mo
+                            {t("perMonth")}
                           </span>
                         </>
                       )}
                     </p>
                     {!isFree ? (
                       <p className="mt-1 text-xs text-muted-foreground">
-                        or {plan.monthlyPriceXaf.toLocaleString()} XAF / mo via
-                        mobile money
+                        {t("orXafPerMonth", {
+                          amount: plan.monthlyPriceXaf.toLocaleString(),
+                        })}
                       </p>
                     ) : null}
                   </div>
@@ -118,7 +120,7 @@ export function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
                     <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-center">
                       <p className="text-lg font-semibold">{plan.maxStores}</p>
                       <p className="text-xs text-muted-foreground">
-                        store{plan.maxStores === 1 ? "" : "s"}
+                        {plan.maxStores === 1 ? t("store") : t("stores")}
                       </p>
                     </div>
                     <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-center">
@@ -126,7 +128,7 @@ export function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
                         {plan.maxProductsPerStore.toLocaleString()}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        products / store
+                        {t("productsPerStore")}
                       </p>
                     </div>
                   </div>
@@ -156,8 +158,7 @@ export function LandingPricing({ isLoggedIn, plans }: LandingPricingProps) {
           </div>
 
           <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted-foreground">
-            All paid plans renew monthly. NotchPay plans extend for 30 days after
-            each successful mobile money payment.
+            {t("pricingFootnote")}
           </p>
         </div>
       </div>

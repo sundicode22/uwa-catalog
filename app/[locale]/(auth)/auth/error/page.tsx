@@ -1,10 +1,14 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 import { AuthErrorView } from "@/components/auth/auth-error-view"
 import { buildPrivateMetadata } from "@/lib/seo/metadata"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export const metadata: Metadata = buildPrivateMetadata("Sign-in error")
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("auth")
+  return buildPrivateMetadata(t("signInError"))
+}
 
 function AuthErrorFallback() {
   return (

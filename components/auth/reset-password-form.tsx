@@ -1,15 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { BackLink } from "@/components/ui/back-link"
 import { useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
+import { BackLink } from "@/components/ui/back-link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Link } from "@/i18n/navigation"
 import { AuthCard } from "./auth-card"
 import { Button } from "@/components/ui/button"
-import { FormInput } from "@/components/ui/form-input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { apiPost } from "@/lib/api/request"
 import { ApiClientError } from "@/types/api"
 import {
@@ -21,23 +22,24 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 
-const schema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
-
 export function ResetPasswordForm() {
+  const t = useTranslations("auth")
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
   const email = searchParams.get("email")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+
+  const schema = z
+    .object({
+      password: z.string().min(8, t("passwordMinLength")),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("passwordsMismatch"),
+      path: ["confirmPassword"],
+    })
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -48,11 +50,11 @@ export function ResetPasswordForm() {
   if (!token || !email) {
     return (
       <AuthCard
-        title="Invalid reset link"
-        description="This password reset link is missing required information."
+        title={t("invalidResetLink")}
+        description={t("invalidResetLinkDescription")}
       >
         <Link href="/forgot-password">
-          <Button className="h-10 w-full">Request a new link</Button>
+          <Button className="h-10 w-full">{t("requestNewLink")}</Button>
         </Link>
       </AuthCard>
     )
@@ -61,11 +63,11 @@ export function ResetPasswordForm() {
   if (done) {
     return (
       <AuthCard
-        title="Password updated"
-        description="Your password has been reset. You can now log in with your new password."
+        title={t("passwordUpdated")}
+        description={t("passwordUpdatedDescription")}
       >
         <Link href="/login">
-          <Button className="h-10 w-full">Go to login</Button>
+          <Button className="h-10 w-full">{t("goToLogin")}</Button>
         </Link>
       </AuthCard>
     )
@@ -90,7 +92,7 @@ export function ResetPasswordForm() {
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Failed to reset password. Please try again."
+          : t("resetFailed")
       )
     } finally {
       setIsLoading(false)
@@ -98,7 +100,7 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <AuthCard title="Reset password" description="Enter your new password below.">
+    <AuthCard title={t("resetPassword")} description={t("resetPasswordDescription")}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -106,11 +108,10 @@ export function ResetPasswordForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New password</FormLabel>
+                <FormLabel>{t("newPassword")}</FormLabel>
                 <FormControl>
-                  <FormInput
-                    type="password"
-                    placeholder="Enter a new password"
+                  <PasswordInput
+                    placeholder={t("newPasswordPlaceholder")}
                     {...field}
                   />
                 </FormControl>
@@ -124,11 +125,10 @@ export function ResetPasswordForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm password</FormLabel>
+                <FormLabel>{t("confirmNewPassword")}</FormLabel>
                 <FormControl>
-                  <FormInput
-                    type="password"
-                    placeholder="Confirm your new password"
+                  <PasswordInput
+                    placeholder={t("confirmNewPasswordPlaceholder")}
                     {...field}
                   />
                 </FormControl>
@@ -144,13 +144,13 @@ export function ResetPasswordForm() {
             className="h-10 w-full"
             disabled={!form.formState.isValid || isLoading}
           >
-            {isLoading ? "Updating..." : "Update password"}
+            {isLoading ? t("updating") : t("updatePassword")}
           </Button>
         </form>
       </Form>
 
       <div className="mt-4 flex justify-center">
-        <BackLink href="/login">Back to login</BackLink>
+        <BackLink href="/login">{t("backToLogin")}</BackLink>
       </div>
     </AuthCard>
   )

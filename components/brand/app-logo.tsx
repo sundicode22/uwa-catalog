@@ -1,4 +1,6 @@
-import Link from "next/link"
+"use client"
+
+import { Link } from "@/i18n/navigation"
 import { getSiteName } from "@/lib/seo/site"
 import { cn } from "@/lib/utils"
 
@@ -12,7 +14,7 @@ interface AppLogoProps {
   className?: string
   size?: keyof typeof sizeClasses
   asLink?: boolean
-  href?: string
+  href?: "/" | "/dashboard"
 }
 
 export function AppLogo({

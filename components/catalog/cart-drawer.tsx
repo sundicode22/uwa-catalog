@@ -3,6 +3,7 @@
 import type { Country } from "react-phone-number-input"
 import { useMemo, useState } from "react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { toast } from "sonner"
 import {
@@ -15,6 +16,7 @@ import {
   UserIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { FormInput } from "@/components/ui/form-input"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { Modal, ModalBody, ModalFooter, ModalForm, ModalHeader, ModalTitle } from "@/components/ui/modal"
@@ -49,7 +51,15 @@ interface CartDrawerProps {
   showFab?: boolean
 }
 
+function defaultFulfillmentType(store: Store): FulfillmentType {
+  const deliveryAvailable = store.deliveryEnabled ?? false
+  const pickupAvailable = store.pickupEnabled ?? true
+  if (deliveryAvailable && !pickupAvailable) return "delivery"
+  return "pickup"
+}
+
 export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
+  const t = useTranslations("cart")
   const { cartOpen, setCartOpen, items, removeItem, updateQuantity, clearCart, itemCount } =
     useCart()
   const [customerName, setCustomerName] = useState("")
@@ -58,7 +68,9 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
   const [customerAddress, setCustomerAddress] = useState("")
   const [customerCity, setCustomerCity] = useState("")
   const [showOptionalDetails, setShowOptionalDetails] = useState(false)
-  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>("pickup")
+  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>(() =>
+    defaultFulfillmentType(store)
+  )
   const [discountInput, setDiscountInput] = useState("")
   const [appliedDiscount, setAppliedDiscount] = useState<{
     code: string
@@ -67,6 +79,10 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
   const createOrder = useCreateOrder(store.id)
   const validateDiscount = useValidateDiscount()
   const isWhatsAppMode = store.orderMode === "whatsapp"
+  const deliveryAvailable = store.deliveryEnabled ?? false
+  const pickupAvailable = store.pickupEnabled ?? true
+  const showDeliveryCheckbox = deliveryAvailable && pickupAvailable
+  const wantsDelivery = fulfillmentType === "delivery"
 
   const subtotal = useMemo(
     () =>
@@ -106,11 +122,11 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
   async function handleCheckout() {
     if (!customerName || !customerPhone || items.length === 0) return
     if (!phoneValid) {
-      toast.error("Enter a valid phone number")
+      toast.error(t("invalidPhone"))
       return
     }
     if (isWhatsAppMode && !store.whatsappNumber) {
-      toast.error("Store has no WhatsApp number configured")
+      toast.error(t("noWhatsapp"))
       return
     }
     if (
@@ -118,7 +134,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       store.whatsappNumber &&
       normalizeWhatsAppPhone(store.whatsappNumber).length < 8
     ) {
-      toast.error("Store WhatsApp number is invalid — update it in Settings")
+      toast.error(t("invalidWhatsappSettings"))
       return
     }
 
@@ -126,11 +142,11 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       fulfillmentType === "delivery" &&
       !(store.deliveryEnabled ?? false)
     ) {
-      toast.error("Delivery is not available for this store")
+      toast.error(t("deliveryUnavailable"))
       return
     }
     if (fulfillmentType === "delivery" && !customerAddress.trim()) {
-      toast.error("Enter a delivery address")
+      toast.error(t("deliveryAddressRequired"))
       return
     }
 
@@ -210,15 +226,13 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
 
       const opened = openWhatsAppChat(store.whatsappNumber, message, whatsAppWindow)
       if (!opened) {
-        toast.error("Could not open WhatsApp. Check the store WhatsApp number.")
+        toast.error(t("whatsappOpenFailed"))
         return
       }
-      toast.success("Order saved — send the message in WhatsApp to confirm")
+      toast.success(t("whatsappSaved"))
     } else {
-      toast.success("Order placed", {
-        description: order.trackingUrl
-          ? "Save your tracking link to check status later."
-          : undefined,
+      toast.success(t("orderPlaced"), {
+        description: order.trackingUrl ? t("orderPlacedDescription") : undefined,
       })
     }
 
@@ -230,7 +244,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     setCustomerAddress("")
     setCustomerCity("")
     setShowOptionalDetails(false)
-    setFulfillmentType("pickup")
+    setFulfillmentType(defaultFulfillmentType(store))
     setDiscountInput("")
     setAppliedDiscount(null)
   }
@@ -249,7 +263,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
         code: result.code.code,
         amount: parseFloat(result.discountAmount),
       })
-      toast.success("Discount applied")
+      toast.success(t("discountApplied"))
     } catch {
       setAppliedDiscount(null)
     }
@@ -275,18 +289,18 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
         open={cartOpen}
         onOpenChange={setCartOpen}
         mobileFullscreen
-        className="border-0 shadow-lg"
+        className="w-full max-w-none border-0 shadow-none sm:h-auto sm:max-h-[min(90vh,44rem)] sm:w-full sm:max-w-md sm:border"
       >
         <ModalHeader
-          className="border-0 px-4 sm:px-6"
+          className="border-0 px-4 sm:px-5"
           onClose={() => setCartOpen(false)}
         >
-          <ModalTitle>Your Cart ({itemCount})</ModalTitle>
+          <ModalTitle>{t("cartTitle", { count: itemCount })}</ModalTitle>
         </ModalHeader>
-        <ModalBody className="px-4 sm:px-6">
-          <ModalForm className="my-0 max-w-none space-y-4">
+        <ModalBody className="px-4 sm:px-5">
+          <ModalForm className="my-0 space-y-4">
           {items.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">Your cart is empty</p>
+            <p className="py-8 text-center text-muted-foreground">{t("empty")}</p>
           ) : (
             items.map((item) => {
               const stockLabel = formatStockRemaining(
@@ -382,34 +396,23 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
           )}
 
           {items.length > 0 && (
-            <div className="space-y-3 rounded-xl bg-muted/30 p-4">
-              {(store.pickupEnabled ?? true) || (store.deliveryEnabled ?? false) ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {(store.pickupEnabled ?? true) ? (
-                    <Button
-                      type="button"
-                      variant={fulfillmentType === "pickup" ? "default" : "outline"}
-                      onClick={() => setFulfillmentType("pickup")}
-                    >
-                      Pickup
-                    </Button>
-                  ) : null}
-                  {(store.deliveryEnabled ?? false) ? (
-                    <Button
-                      type="button"
-                      variant={fulfillmentType === "delivery" ? "default" : "outline"}
-                      onClick={() => setFulfillmentType("delivery")}
-                    >
-                      Delivery
-                    </Button>
-                  ) : null}
-                </div>
+            <div className="space-y-3 rounded-xl bg-muted/30 p-3 sm:p-4">
+              {showDeliveryCheckbox ? (
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+                  <Checkbox
+                    checked={wantsDelivery}
+                    onCheckedChange={(checked) =>
+                      setFulfillmentType(checked === true ? "delivery" : "pickup")
+                    }
+                  />
+                  <span>{t("wantDelivery")}</span>
+                </label>
               ) : null}
               <div className="relative">
                 <UserIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                 <FormInput
                   className="bg-background pl-9"
-                  placeholder="Your name"
+                  placeholder={t("namePlaceholder")}
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                 />
@@ -417,48 +420,67 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               <PhoneInput
                 className="bg-background"
                 defaultCountry={phoneDefaultCountry}
-                placeholder="Your phone number"
+                placeholder={t("phonePlaceholder")}
                 value={customerPhone}
                 onChange={(value) => setCustomerPhone(value ?? "")}
               />
+              {wantsDelivery ? (
+                <div className="space-y-3">
+                  <FormInput
+                    className="bg-background"
+                    placeholder={t("addressPlaceholder")}
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    required
+                  />
+                  <FormInput
+                    className="bg-background"
+                    placeholder={t("cityPlaceholder")}
+                    value={customerCity}
+                    onChange={(e) => setCustomerCity(e.target.value)}
+                  />
+                </div>
+              ) : null}
               <button
                 type="button"
                 className="text-left text-sm text-primary underline-offset-4 hover:underline"
                 onClick={() => setShowOptionalDetails((open) => !open)}
               >
                 {showOptionalDetails
-                  ? "Hide optional details"
-                  : fulfillmentType === "delivery"
-                    ? "Add email or delivery details"
-                    : "Add email or delivery details (optional)"}
+                  ? t("hideOptionalDetails")
+                  : t("addOptionalDetails")}
               </button>
               {showOptionalDetails ? (
                 <div className="space-y-3">
                   <FormInput
                     className="bg-background"
                     type="email"
-                    placeholder="Email (optional)"
+                    placeholder={t("emailPlaceholder")}
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
                   />
-                  <FormInput
-                    className="bg-background"
-                    placeholder="Address (optional)"
-                    value={customerAddress}
-                    onChange={(e) => setCustomerAddress(e.target.value)}
-                  />
-                  <FormInput
-                    className="bg-background"
-                    placeholder="City (optional)"
-                    value={customerCity}
-                    onChange={(e) => setCustomerCity(e.target.value)}
-                  />
+                  {!wantsDelivery ? (
+                    <>
+                      <FormInput
+                        className="bg-background"
+                        placeholder={t("addressPlaceholder")}
+                        value={customerAddress}
+                        onChange={(e) => setCustomerAddress(e.target.value)}
+                      />
+                      <FormInput
+                        className="bg-background"
+                        placeholder={t("cityPlaceholder")}
+                        value={customerCity}
+                        onChange={(e) => setCustomerCity(e.target.value)}
+                      />
+                    </>
+                  ) : null}
                 </div>
               ) : null}
               <div className="flex gap-2">
                 <FormInput
                   className="bg-background"
-                  placeholder="Discount code"
+                  placeholder={t("discountCode")}
                   value={discountInput}
                   onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
                 />
@@ -468,7 +490,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                   disabled={!discountInput || validateDiscount.isPending}
                   onClick={handleApplyDiscount}
                 >
-                  Apply
+                  {t("apply")}
                 </Button>
               </div>
               {appliedDiscount ? (
@@ -478,18 +500,18 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               ) : null}
               <div className="space-y-1 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t("subtotal")}</span>
                   <span className="tabular-nums">{formatMoney(subtotal, store.currency)}</span>
                 </div>
                 {deliveryFee > 0 ? (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Delivery</span>
+                    <span className="text-muted-foreground">{t("deliveryFee")}</span>
                     <span className="tabular-nums">{formatMoney(deliveryFee, store.currency)}</span>
                   </div>
                 ) : null}
                 {discountAmount > 0 ? (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Discount</span>
+                    <span className="text-muted-foreground">{t("discount")}</span>
                     <span className="tabular-nums">-{formatMoney(discountAmount, store.currency)}</span>
                   </div>
                 ) : null}
@@ -497,7 +519,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               <div className="flex items-center justify-between font-semibold">
                 <span className="flex items-center gap-2">
                   <ReceiptIcon className="size-4 text-muted-foreground" />
-                  Total
+                  {t("total")}
                 </span>
                 <span className="text-lg tabular-nums whitespace-nowrap">
                   {formatMoney(orderTotal, store.currency)}
@@ -508,26 +530,28 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
           </ModalForm>
         </ModalBody>
         {items.length > 0 && (
-          <ModalFooter className="border-0 px-4 sm:px-6">
-            <Button
-              className="w-full gap-2"
-              disabled={!customerName || !phoneValid || createOrder.isPending}
-              onClick={handleCheckout}
-            >
+          <ModalFooter className="border-0 px-4 sm:px-5">
+            <div className="mx-auto w-full max-w-sm">
+              <Button
+                className="w-full gap-2"
+                disabled={!customerName || !phoneValid || createOrder.isPending}
+                onClick={handleCheckout}
+              >
               {createOrder.isPending ? (
-                "Processing..."
+                t("processing")
               ) : isWhatsAppMode ? (
                 <>
                   <MessageCircleIcon className="size-4" />
-                  Order via WhatsApp
+                  {t("orderOnWhatsapp")}
                 </>
               ) : (
                 <>
                   <ReceiptIcon className="size-4" />
-                  Place order
+                  {t("placeOrder")}
                 </>
               )}
             </Button>
+            </div>
           </ModalFooter>
         )}
       </Modal>

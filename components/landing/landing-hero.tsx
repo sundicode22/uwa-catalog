@@ -1,10 +1,13 @@
+"use client"
+
 import Image from "next/image"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 import {
   ArrowRightIcon,
   LayoutGridIcon,
   SparklesIcon,
 } from "lucide-react"
+import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { LANDING_HERO_FLOATERS, landingImage } from "@/lib/landing/images"
 import { getSiteName } from "@/lib/seo/site"
@@ -16,6 +19,8 @@ interface LandingHeroProps {
 }
 
 export function LandingHero({ isLoggedIn }: LandingHeroProps) {
+  const t = useTranslations("landing")
+  const tNav = useTranslations("nav")
   const siteName = getSiteName()
 
   return (
@@ -30,18 +35,16 @@ export function LandingHero({ isLoggedIn }: LandingHeroProps) {
         <div className="relative z-10 min-w-0 animate-fade-in-up space-y-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-primary">
             <SparklesIcon className="size-3.5" />
-            Catalogs built for modern sellers
+            {t("badge")}
           </div>
 
           <div className="space-y-4">
             <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-[3.25rem] lg:leading-[1.1]">
-              Share your products.
-              <span className="block text-brand-gradient">Take orders in minutes.</span>
+              {t("heroTitle")}
+              <span className="block text-brand-gradient">{t("heroTitleAccent")}</span>
             </h1>
             <p className="max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-              {siteName} helps you publish a beautiful storefront, manage inventory,
-              and accept orders — including WhatsApp checkout — without building a
-              full e-commerce site.
+              {t("heroDescription", { appName: siteName })}
             </p>
           </div>
 
@@ -49,7 +52,7 @@ export function LandingHero({ isLoggedIn }: LandingHeroProps) {
             {isLoggedIn ? (
               <Button asChild size="lg" className="h-11 px-6">
                 <Link href="/dashboard">
-                  Open dashboard
+                  {t("openDashboard")}
                   <ArrowRightIcon />
                 </Link>
               </Button>
@@ -57,12 +60,12 @@ export function LandingHero({ isLoggedIn }: LandingHeroProps) {
               <>
                 <Button asChild size="lg" className="h-11 px-6">
                   <Link href="/signup">
-                    Start for free
+                    {t("startFree")}
                     <ArrowRightIcon />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-11 px-6">
-                  <Link href="/login">Log in</Link>
+                  <Link href="/login">{tNav("login")}</Link>
                 </Button>
               </>
             )}
@@ -71,9 +74,9 @@ export function LandingHero({ isLoggedIn }: LandingHeroProps) {
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
               <LayoutGridIcon className="size-4" />
-              Multiple catalog layouts
+              {t("multipleLayouts")}
             </span>
-            <span className="hidden sm:inline">No code required</span>
+            <span className="hidden sm:inline">{t("noCode")}</span>
           </div>
         </div>
 

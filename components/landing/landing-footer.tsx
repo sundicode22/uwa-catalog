@@ -1,11 +1,32 @@
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
+import { Link } from "@/i18n/navigation"
 import { AppLogo } from "@/components/brand/app-logo"
 import { getSiteName } from "@/lib/seo/site"
-import { LANDING_NAV } from "@/lib/landing/content"
 
-export function LandingFooter() {
+export async function LandingFooter() {
+  const t = await getTranslations("landing")
+  const tNav = await getTranslations("nav")
   const siteName = getSiteName()
   const year = new Date().getFullYear()
+
+  const productLinks = [
+    { label: tNav("features"), href: "#features" },
+    { label: tNav("howItWorks"), href: "#how-it-works" },
+    { label: tNav("pricing"), href: "#pricing" },
+    { label: tNav("testimonials"), href: "#testimonials" },
+    { label: tNav("faq"), href: "#faq" },
+  ]
+
+  const companyLinks = [
+    { label: t("about"), href: "#" },
+    { label: t("blog"), href: "#" },
+    { label: t("contact"), href: "#" },
+  ]
+
+  const legalLinks = [
+    { label: t("privacy"), href: "#" },
+    { label: t("terms"), href: "#" },
+  ]
 
   return (
     <footer className="w-full border-t border-border bg-brand-gradient-sidebar">
@@ -14,15 +35,14 @@ export function LandingFooter() {
           <div className="space-y-4 lg:col-span-2">
             <AppLogo size="md" />
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Create beautiful product catalogs, manage inventory, and accept orders
-              — including WhatsApp checkout — without building a full store from scratch.
+              {t("footerDescription")}
             </p>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold">Product</h3>
+            <h3 className="text-sm font-semibold">{t("footerProduct")}</h3>
             <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-              {LANDING_NAV.product.map((item) => (
+              {productLinks.map((item) => (
                 <li key={item.label}>
                   <a href={item.href} className="transition-colors hover:text-foreground">
                     {item.label}
@@ -33,9 +53,9 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold">Company</h3>
+            <h3 className="text-sm font-semibold">{t("footerCompany")}</h3>
             <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-              {LANDING_NAV.company.map((item) => (
+              {companyLinks.map((item) => (
                 <li key={item.label}>
                   <a href={item.href} className="transition-colors hover:text-foreground">
                     {item.label}
@@ -46,9 +66,9 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold">Legal</h3>
+            <h3 className="text-sm font-semibold">{t("footerLegal")}</h3>
             <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-              {LANDING_NAV.legal.map((item) => (
+              {legalLinks.map((item) => (
                 <li key={item.label}>
                   <a href={item.href} className="transition-colors hover:text-foreground">
                     {item.label}
@@ -56,21 +76,21 @@ export function LandingFooter() {
                 </li>
               ))}
             </ul>
-            <h3 className="mt-8 text-sm font-semibold">Account</h3>
+            <h3 className="mt-8 text-sm font-semibold">{t("footerAccount")}</h3>
             <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link href="/login" className="transition-colors hover:text-foreground">
-                  Log in
+                  {tNav("login")}
                 </Link>
               </li>
               <li>
                 <Link href="/signup" className="transition-colors hover:text-foreground">
-                  Sign up
+                  {tNav("signup")}
                 </Link>
               </li>
               <li>
                 <Link href="/dashboard" className="transition-colors hover:text-foreground">
-                  Dashboard
+                  {tNav("dashboard")}
                 </Link>
               </li>
             </ul>
@@ -78,10 +98,8 @@ export function LandingFooter() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-8 text-sm text-muted-foreground sm:flex-row">
-          <p>
-            © {year} {siteName}. All rights reserved.
-          </p>
-          <p>Made for modern catalog sellers.</p>
+          <p>{t("allRightsReserved", { year, appName: siteName })}</p>
+          <p>{t("madeForSellers")}</p>
         </div>
       </div>
     </footer>

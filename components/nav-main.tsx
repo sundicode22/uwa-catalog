@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
+import { pathMatches } from "@/lib/i18n/pathname"
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,12 +35,7 @@ export function NavMain({
 }) {
   const pathname = usePathname()
 
-  const isItemActive = (url: string) => {
-    if (pathname === url) return true
-    // /dashboard is the overview root — don't match every nested dashboard route
-    if (url === "/dashboard") return false
-    return pathname.startsWith(`${url}/`)
-  }
+  const isItemActive = (url: string) => pathMatches(pathname, url)
 
   return (
     <SidebarGroup>

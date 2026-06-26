@@ -1,14 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { ChevronLeftIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { BackLink } from "@/components/ui/back-link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { apiPost } from "@/lib/api/request"
 import { ApiClientError } from "@/types/api"
+import { Link } from "@/i18n/navigation"
 import { AuthCard } from "./auth-card"
 import { Button } from "@/components/ui/button"
 import { FormInput } from "@/components/ui/form-input"
@@ -21,14 +22,15 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 
-const schema = z.object({
-  email: z.string().email("Please enter a valid email"),
-})
-
 export function ForgotPasswordForm() {
+  const t = useTranslations("auth")
   const [sent, setSent] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const schema = z.object({
+    email: z.string().email(t("invalidEmail")),
+  })
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -46,7 +48,7 @@ export function ForgotPasswordForm() {
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Failed to send reset link. Please try again."
+          : t("resetLinkFailed")
       )
     } finally {
       setIsLoading(false)
@@ -56,13 +58,13 @@ export function ForgotPasswordForm() {
   if (sent) {
     return (
       <AuthCard
-        title="Check your email"
-        description="If an account exists, we've sent password reset instructions."
+        title={t("checkEmail")}
+        description={t("checkEmailDescription")}
       >
         <Button asChild className="h-10 w-full">
           <Link href="/login">
             <ChevronLeftIcon className="size-4" />
-            Back to login
+            {t("backToLogin")}
           </Link>
         </Button>
       </AuthCard>
@@ -70,7 +72,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <AuthCard title="Forgot password" description="Enter your email to reset your password.">
+    <AuthCard title={t("forgotPasswordTitle")} description={t("forgotPasswordDescription")}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -78,9 +80,9 @@ export function ForgotPasswordForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("email")}</FormLabel>
                 <FormControl>
-                  <FormInput placeholder="Enter your Email" {...field} />
+                  <FormInput placeholder={t("emailPlaceholder")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -92,12 +94,12 @@ export function ForgotPasswordForm() {
             className="h-10 w-full"
             disabled={isLoading}
           >
-            {isLoading ? "Sending..." : "Send reset link"}
+            {isLoading ? t("sending") : t("sendResetLink")}
           </Button>
         </form>
       </Form>
       <div className="mt-4 flex justify-center">
-        <BackLink href="/login">Back to login</BackLink>
+        <BackLink href="/login">{t("backToLogin")}</BackLink>
       </div>
     </AuthCard>
   )

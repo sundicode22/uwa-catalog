@@ -1,16 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { signIn } from "next-auth/react"
+import { Link, useRouter } from "@/i18n/navigation"
 import { AuthCard } from "./auth-card"
 import { OAuthButtons } from "./oauth-buttons"
 import { Button } from "@/components/ui/button"
 import { FormInput } from "@/components/ui/form-input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Separator } from "@/components/ui/separator"
 import {
   Form,
@@ -21,19 +23,21 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(1, "Password is required"),
-})
-
-type LoginValues = z.infer<typeof loginSchema>
-
 export function LoginForm() {
+  const t = useTranslations("auth")
+  const tCommon = useTranslations("common")
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
   const [apiError, setApiError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const loginSchema = z.object({
+    email: z.string().email(t("invalidEmail")),
+    password: z.string().min(1, t("passwordRequired")),
+  })
+
+  type LoginValues = z.infer<typeof loginSchema>
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -54,8 +58,8 @@ export function LoginForm() {
     setIsLoading(false)
 
     if (result?.error) {
-      setApiError("No account found with this email. Please sign up.")
-      form.setError("email", { message: "No account found with this email. Please sign up." })
+      setApiError(t("accountNotFound"))
+      form.setError("email", { message: t("accountNotFound") })
       return
     }
 
@@ -64,7 +68,7 @@ export function LoginForm() {
   }
 
   return (
-    <AuthCard title="Login" description="Enter your details to login.">
+    <AuthCard title={t("login")} description={t("loginDescription")}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -72,9 +76,9 @@ export function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("email")}</FormLabel>
                 <FormControl>
-                  <FormInput placeholder="Enter your Email" {...field} />
+                  <FormInput placeholder={t("emailPlaceholder")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -87,18 +91,17 @@ export function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("password")}</FormLabel>
                   <Link
                     href="/forgot-password"
                     className="text-sm text-muted-foreground hover:text-foreground"
                   >
-                    Forgot password?
+                    {t("forgotPassword")}
                   </Link>
                 </div>
                 <FormControl>
-                  <FormInput
-                    type="password"
-                    placeholder="Enter your password"
+                  <PasswordInput
+                    placeholder={t("passwordPlaceholder")}
                     {...field}
                   />
                 </FormControl>
@@ -116,23 +119,23 @@ export function LoginForm() {
             className="h-10 w-full"
             disabled={!isValid || isLoading}
           >
-            {isLoading ? "Logging in..." : "Log In"}
+            {isLoading ? t("loggingIn") : t("logIn")}
           </Button>
         </form>
       </Form>
 
       <div className="my-6 flex items-center gap-4">
         <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">OR</span>
+        <span className="text-xs text-muted-foreground">{tCommon("or")}</span>
         <Separator className="flex-1" />
       </div>
 
       <OAuthButtons callbackUrl={callbackUrl} />
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account yet?{" "}
+        {t("noAccount")}{" "}
         <Link href="/signup" className="font-medium text-foreground underline-offset-4 hover:underline">
-          Sign up
+          {t("signUp")}
         </Link>
       </p>
     </AuthCard>

@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth"
+import { stripLocalePrefix } from "@/lib/i18n/pathname"
 
 export const authConfig = {
   trustHost: true,
@@ -9,13 +10,14 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
+      const path = stripLocalePrefix(nextUrl.pathname)
       const isAuthPage =
-        nextUrl.pathname.startsWith("/login") ||
-        nextUrl.pathname.startsWith("/signup") ||
-        nextUrl.pathname.startsWith("/forgot-password") ||
-        nextUrl.pathname.startsWith("/reset-password") ||
-        nextUrl.pathname.startsWith("/auth/error")
-      const isDashboard = nextUrl.pathname.startsWith("/dashboard")
+        path.startsWith("/login") ||
+        path.startsWith("/signup") ||
+        path.startsWith("/forgot-password") ||
+        path.startsWith("/reset-password") ||
+        path.startsWith("/auth/error")
+      const isDashboard = path.startsWith("/dashboard")
 
       if (isDashboard && !isLoggedIn) return false
       if (isAuthPage && isLoggedIn) {

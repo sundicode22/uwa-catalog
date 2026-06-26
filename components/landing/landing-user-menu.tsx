@@ -1,13 +1,14 @@
 "use client"
 
-import Link from "next/link"
 import { signOut } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import {
   LayoutDashboardIcon,
   LogOutIcon,
   SettingsIcon,
   StoreIcon,
 } from "lucide-react"
+import { Link } from "@/i18n/navigation"
 import {
   Avatar,
   AvatarFallback,
@@ -45,7 +46,9 @@ function initials(name?: string | null, email?: string | null) {
 }
 
 export function LandingUserMenu({ user }: LandingUserMenuProps) {
-  const displayName = user.name?.trim() || "Account"
+  const t = useTranslations("common")
+  const tNav = useTranslations("nav")
+  const displayName = user.name?.trim() || t("account")
 
   return (
     <DropdownMenu>
@@ -78,26 +81,26 @@ export function LandingUserMenu({ user }: LandingUserMenuProps) {
           <DropdownMenuItem asChild>
             <Link href="/dashboard">
               <LayoutDashboardIcon />
-              Dashboard
+              {tNav("dashboard")}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/dashboard/stores">
               <StoreIcon />
-              My stores
+              {t("myStores")}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/dashboard/settings">
               <SettingsIcon />
-              Settings
+              {tNav("settings")}
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
           <LogOutIcon />
-          Log out
+          {t("logOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

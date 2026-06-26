@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -16,13 +17,17 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { StoreProvider } from "@/components/providers/store-provider"
 import { buildPrivateMetadata } from "@/lib/seo/metadata"
 
-export const metadata: Metadata = buildPrivateMetadata("Dashboard")
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata")
+  return buildPrivateMetadata(t("dashboard"))
+}
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const t = await getTranslations("dashboard")
   return (
     <TooltipProvider>
       <StoreProvider>
@@ -36,7 +41,7 @@ export default function DashboardLayout({
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem>
-                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                      <BreadcrumbPage>{t("title")}</BreadcrumbPage>
                     </BreadcrumbItem>
                   </BreadcrumbList>
                 </Breadcrumb>

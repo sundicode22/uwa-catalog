@@ -1,13 +1,18 @@
 "use client"
 
-import Link from "next/link"
 import { ShoppingBagIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import { CatalogSearch } from "@/components/catalog/catalog-search"
+import { LocaleSwitcher } from "@/components/locale-switcher"
 import { useCart } from "@/components/catalog/cart-context"
 import { whatsAppUrl } from "@/lib/whatsapp"
 import type { StoreWithCategories } from "@/types/domain"
 
 export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
+  const t = useTranslations("nav")
+  const tCatalog = useTranslations("catalog")
+  const tCart = useTranslations("cart")
   const { itemCount, setCartOpen } = useCart()
 
   return (
@@ -15,10 +20,10 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
       <nav className="border-b border-foreground bg-foreground text-background">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-xs tracking-[0.2em] uppercase">
           <Link href={`/c/${store.slug}#vision`} className="hover:opacity-80">
-            About
+            {tCatalog("about")}
           </Link>
           <Link href={`/c/${store.slug}#shop`} className="hover:opacity-80">
-            Shop All
+            {tCatalog("shopAll")}
           </Link>
           {store.categories.map((category) => (
             <Link
@@ -32,14 +37,16 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
           {store.whatsappNumber ? (
             <a
               href={
-                whatsAppUrl(store.whatsappNumber, `Hi ${store.name}, I have a question about your catalog.`) ??
-                "#"
+                whatsAppUrl(
+                  store.whatsappNumber,
+                  tCatalog("whatsappGreeting", { storeName: store.name })
+                ) ?? "#"
               }
               target="_blank"
               rel="noreferrer"
               className="hover:opacity-80"
             >
-              Contact
+              {tCatalog("contact")}
             </a>
           ) : null}
         </div>
@@ -51,7 +58,7 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
             href="/login"
             className="text-sm text-foreground/70 transition-colors hover:text-foreground"
           >
-            Log In
+            {t("login")}
           </Link>
 
           <Link
@@ -62,6 +69,7 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
           </Link>
 
           <div className="flex items-center justify-end gap-3">
+            <LocaleSwitcher useCookie className="hidden h-9 w-[7.5rem] sm:flex" />
             <CatalogSearch
               storeSlug={store.slug}
               className="hidden max-w-xs sm:block"
@@ -69,7 +77,7 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
             />
             <button
               type="button"
-              aria-label="Open cart"
+              aria-label={tCart("openCart")}
               className="relative flex size-10 items-center justify-center border border-foreground/20 bg-white transition-colors hover:border-foreground"
               onClick={() => setCartOpen(true)}
             >
