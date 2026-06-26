@@ -12,6 +12,10 @@ export const createOrderBody = t.Object({
   customerNotes: t.Optional(t.String()),
   items: t.Array(orderItemSchema),
   source: t.Optional(t.Union([t.Literal("whatsapp"), t.Literal("checkout")])),
+  fulfillmentType: t.Optional(
+    t.Union([t.Literal("pickup"), t.Literal("delivery")])
+  ),
+  discountCode: t.Optional(t.String()),
 })
 
 export const updateOrderStatusBody = t.Object({

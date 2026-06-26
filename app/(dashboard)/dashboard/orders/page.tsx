@@ -1,11 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { DownloadIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
 import { getOrderColumns } from "@/components/data-table/columns/order-columns"
 import { useOrders, useUpdateOrderStatus } from "@/hooks/use-orders"
 import { useStore } from "@/hooks/use-store"
+import { downloadCsv } from "@/lib/export-csv"
 import type { Order, OrderStatus } from "@/types/domain"
 
 export default function OrdersPage() {
@@ -38,13 +41,38 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold">Orders</h1>
-        {store.orderMode === "whatsapp" ? (
-          <p className="mt-1 text-sm text-muted-foreground">
-            Saved orders from WhatsApp and catalog checkout appear here.
-          </p>
-        ) : null}
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-semibold">Orders</h1>
+          {store.orderMode === "whatsapp" ? (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Saved orders from WhatsApp and catalog checkout appear here.
+            </p>
+          ) : null}
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          disabled={orders.length === 0}
+          onClick={() =>
+            downloadCsv("orders.csv", [
+              ["Customer", "Phone", "Total", "Status", "Source", "Date"],
+              ...orders.map((order) => [
+                order.customerName,
+                order.customerPhone,
+                order.total,
+                order.status,
+                order.source,
+                new Date(order.createdAt).toLocaleString(),
+              ]),
+            ])
+          }
+        >
+          <DownloadIcon className="size-4" />
+          Export CSV
+        </Button>
       </div>
 
       <DataTableToolbar

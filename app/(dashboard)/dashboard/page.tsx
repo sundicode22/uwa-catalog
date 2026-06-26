@@ -68,6 +68,12 @@ export default function DashboardPage() {
         <p className="text-sm text-muted-foreground">{store?.name}</p>
       </div>
 
+      {(stats?.lowStockProducts ?? 0) > 0 ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {stats?.lowStockProducts} product{(stats?.lowStockProducts ?? 0) === 1 ? "" : "s"} running low on stock.
+        </div>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total revenue"

@@ -67,6 +67,10 @@ export function buildWhatsAppOrderMessage(input: {
   items: WhatsAppOrderItem[]
   total: number
   origin: string
+  fulfillmentType?: "pickup" | "delivery"
+  deliveryFee?: number
+  discountAmount?: number
+  discountCode?: string | null
 }) {
   const lines = [
     `*New order — ${input.storeName}*`,
@@ -79,6 +83,11 @@ export function buildWhatsAppOrderMessage(input: {
   if (input.customer.email) lines.push(`Email: ${input.customer.email}`)
   if (input.customer.address) lines.push(`Address: ${input.customer.address}`)
   if (input.customer.city) lines.push(`City: ${input.customer.city}`)
+  if (input.fulfillmentType) {
+    lines.push(
+      `Fulfillment: ${input.fulfillmentType === "delivery" ? "Delivery" : "Pickup"}`
+    )
+  }
 
   lines.push("", "*Items*")
 
@@ -101,6 +110,16 @@ export function buildWhatsAppOrderMessage(input: {
       lines.push(`   ${productUrl}`)
     }
   })
+
+  if (input.discountAmount && input.discountAmount > 0) {
+    lines.push(
+      "",
+      `Discount${input.discountCode ? ` (${input.discountCode})` : ""}: -${formatMoney(input.discountAmount, input.currency)}`
+    )
+  }
+  if (input.deliveryFee && input.deliveryFee > 0) {
+    lines.push(`Delivery: ${formatMoney(input.deliveryFee, input.currency)}`)
+  }
 
   lines.push("", `*Total:* ${formatMoney(input.total, input.currency)}`)
 

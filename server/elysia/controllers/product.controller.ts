@@ -59,4 +59,11 @@ export const productController = {
     const result = await productService.delete(id, ownerId)
     return success(result)
   },
+
+  async duplicate(userId: string | null, id: string) {
+    const ownerId = requireAuth(userId)
+    const product = await productService.duplicate(id, ownerId)
+    const counts = await productOptionsService.getCounts([product.id])
+    return success(serializeProductSummary(product, counts[product.id]))
+  },
 }

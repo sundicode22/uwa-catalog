@@ -2,6 +2,9 @@ export type OrderMode = "whatsapp" | "managed"
 export type CatalogLayout = "grid-2" | "grid-3" | "grid-4" | "list" | "masonry"
 export type OrderStatus = "pending" | "confirmed" | "fulfilled" | "cancelled"
 export type OrderSource = "whatsapp" | "checkout"
+export type FulfillmentType = "pickup" | "delivery"
+export type OrderPaymentStatus = "not_required" | "unpaid" | "paid"
+export type DiscountType = "percent" | "fixed"
 export type PaymentProvider = "stripe" | "paystack" | "flutterwave" | "razorpay" | "mercado_pago"
 export type StorefrontTier = "basic" | "premium"
 
@@ -96,6 +99,13 @@ export interface Store {
   isPublished: boolean
   currency: string
   storefrontTier: StorefrontTier
+  pickupEnabled: boolean
+  deliveryEnabled: boolean
+  deliveryFee: string
+  freeDeliveryMinimum: string | null
+  lowStockThreshold: number
+  notifyOnNewOrder: boolean
+  storefrontPaymentsEnabled: boolean
   createdAt: string
   updatedAt: string
 }
@@ -147,11 +157,62 @@ export interface Order {
   customerName: string
   customerPhone: string
   items: OrderItem[]
+  subtotal: string
+  deliveryFee: string
+  discountCode: string | null
+  discountAmount: string
   total: string
+  fulfillmentType: FulfillmentType
+  paymentStatus: OrderPaymentStatus
+  trackingToken: string
+  trackingUrl?: string
   status: OrderStatus
   source: OrderSource
+  checkoutUrl?: string | null
+  merchantWhatsAppUrl?: string | null
   createdAt: string
   updatedAt: string
+}
+
+export interface DiscountCode {
+  id: string
+  storeId: string
+  code: string
+  type: DiscountType
+  value: string
+  minOrderTotal: string | null
+  maxUses: number | null
+  usedCount: number
+  expiresAt: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateDiscountCodeInput {
+  storeId: string
+  code: string
+  type: DiscountType
+  value: string
+  minOrderTotal?: string
+  maxUses?: number
+  expiresAt?: string
+  isActive?: boolean
+}
+
+export interface UpdateDiscountCodeInput {
+  code?: string
+  type?: DiscountType
+  value?: string
+  minOrderTotal?: string | null
+  maxUses?: number | null
+  expiresAt?: string | null
+  isActive?: boolean
+}
+
+export interface ValidateDiscountResult {
+  code: DiscountCode
+  discountAmount: string
 }
 
 export type StoreTransactionType = "sale" | "refund"
@@ -261,6 +322,13 @@ export interface UpdateStoreInput {
   isPublished?: boolean
   currency?: string
   storefrontTier?: StorefrontTier
+  pickupEnabled?: boolean
+  deliveryEnabled?: boolean
+  deliveryFee?: string
+  freeDeliveryMinimum?: string | null
+  lowStockThreshold?: number
+  notifyOnNewOrder?: boolean
+  storefrontPaymentsEnabled?: boolean
 }
 
 export interface CreateCategoryInput {
@@ -333,6 +401,8 @@ export interface CreateOrderInput {
   customerNotes?: string
   items: OrderItem[]
   source?: OrderSource
+  fulfillmentType?: FulfillmentType
+  discountCode?: string
 }
 
 export interface UpdateOrderStatusInput {
@@ -367,6 +437,7 @@ export interface DashboardStats {
   cancelledOrders: number
   ordersThisWeek: number
   totalRevenue: string
+  lowStockProducts: number
   ordersTrend: DashboardOrdersTrendPoint[]
   orderStatusBreakdown: DashboardOrderStatusPoint[]
 }

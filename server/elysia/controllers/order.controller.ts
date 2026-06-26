@@ -19,6 +19,11 @@ export const orderController = {
     return success(order)
   },
 
+  async getByTrackingToken(storeSlug: string, trackingToken: string) {
+    const order = await orderService.getByTrackingToken(storeSlug, trackingToken)
+    return success(order)
+  },
+
   async updateStatus(
     userId: string | null,
     id: string,

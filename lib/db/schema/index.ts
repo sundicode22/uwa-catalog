@@ -27,6 +27,13 @@ export const orderStatusEnum = pgEnum("order_status", [
   "cancelled",
 ])
 export const orderSourceEnum = pgEnum("order_source", ["whatsapp", "checkout"])
+export const fulfillmentTypeEnum = pgEnum("fulfillment_type", ["pickup", "delivery"])
+export const orderPaymentStatusEnum = pgEnum("order_payment_status", [
+  "not_required",
+  "unpaid",
+  "paid",
+])
+export const discountTypeEnum = pgEnum("discount_type", ["percent", "fixed"])
 export const storeTransactionTypeEnum = pgEnum("store_transaction_type", [
   "sale",
   "refund",
@@ -241,6 +248,15 @@ export const stores = pgTable(
     storefrontTier: storefrontTierEnum("storefront_tier")
       .default("basic")
       .notNull(),
+    pickupEnabled: boolean("pickup_enabled").default(true).notNull(),
+    deliveryEnabled: boolean("delivery_enabled").default(false).notNull(),
+    deliveryFee: text("delivery_fee").default("0").notNull(),
+    freeDeliveryMinimum: text("free_delivery_minimum"),
+    lowStockThreshold: integer("low_stock_threshold").default(5).notNull(),
+    notifyOnNewOrder: boolean("notify_on_new_order").default(true).notNull(),
+    storefrontPaymentsEnabled: boolean("storefront_payments_enabled")
+      .default(false)
+      .notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   },
@@ -445,6 +461,18 @@ export const orders = pgTable(
     customerName: text("customer_name").notNull(),
     customerPhone: text("customer_phone").notNull(),
     total: text("total").notNull(),
+    subtotal: text("subtotal"),
+    deliveryFee: text("delivery_fee").default("0").notNull(),
+    discountCode: text("discount_code"),
+    discountAmount: text("discount_amount").default("0").notNull(),
+    fulfillmentType: fulfillmentTypeEnum("fulfillment_type")
+      .default("pickup")
+      .notNull(),
+    paymentStatus: orderPaymentStatusEnum("payment_status")
+      .default("not_required")
+      .notNull(),
+    paymentReference: text("payment_reference"),
+    trackingToken: text("tracking_token"),
     status: orderStatusEnum("status").default("pending").notNull(),
     source: orderSourceEnum("source").default("whatsapp").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
@@ -453,6 +481,33 @@ export const orders = pgTable(
   (table) => [
     index("orders_store_idx").on(table.storeId),
     index("orders_customer_idx").on(table.customerId),
+    uniqueIndex("orders_tracking_token_idx").on(table.trackingToken),
+  ]
+)
+
+export const storeDiscountCodes = pgTable(
+  "store_discount_codes",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    type: discountTypeEnum("type").notNull(),
+    value: text("value").notNull(),
+    minOrderTotal: text("min_order_total"),
+    maxUses: integer("max_uses"),
+    usedCount: integer("used_count").default(0).notNull(),
+    expiresAt: timestamp("expires_at", { mode: "date" }),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("store_discount_codes_store_code_idx").on(table.storeId, table.code),
+    index("store_discount_codes_store_idx").on(table.storeId),
   ]
 )
 

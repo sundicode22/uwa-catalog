@@ -2,7 +2,7 @@
 
 import { type ColumnDef } from "@tanstack/react-table"
 import Image from "next/image"
-import { PencilIcon, StarIcon, TrashIcon, ToggleLeftIcon } from "lucide-react"
+import { CopyIcon, PencilIcon, StarIcon, TrashIcon, ToggleLeftIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { createSelectColumn } from "@/components/data-table/select-column"
@@ -14,6 +14,7 @@ import type { Product } from "@/types/domain"
 export function getProductColumns(actions: {
   onEdit: (product: Product) => void
   onDelete: (product: Product) => void
+  onDuplicate?: (product: Product) => void
   onToggleActive: (product: Product) => void
   onToggleFeatured?: (product: Product) => void
   currency?: string
@@ -116,6 +117,15 @@ export function getProductColumns(actions: {
                 icon: <PencilIcon />,
                 onClick: () => actions.onEdit(product),
               },
+              ...(actions.onDuplicate
+                ? [
+                    {
+                      label: "Duplicate",
+                      icon: <CopyIcon />,
+                      onClick: () => actions.onDuplicate!(product),
+                    },
+                  ]
+                : []),
               {
                 label: product.isActive ? "Deactivate" : "Activate",
                 icon: <ToggleLeftIcon />,

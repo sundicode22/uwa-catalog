@@ -1,14 +1,23 @@
-import { eq, and, ilike, count, desc, gte, sql, or } from "drizzle-orm"
-import { db, stores, categories, products, orders } from "@/lib/db"
+import { eq, and, ilike, count, desc, gte, sql, or, lte, isNotNull } from "drizzle-orm"
+import { randomBytes } from "crypto"
+import { db, stores, categories, products, orders, storeDiscountCodes } from "@/lib/db"
 import { slugify, paginationMeta } from "@/server/lib/response"
 import { buildWhatsAppOrderMessage } from "@/lib/whatsapp"
 import { getSiteUrl } from "@/lib/seo/site"
+import {
+  calculateDeliveryFee,
+  calculateOrderTotal,
+  calculateSubtotal,
+} from "@/lib/checkout/totals"
 import { productOptionsService } from "./product-options.service"
 import { orderItemsService } from "./order-items.service"
 import { subscriptionService } from "./subscription.service"
 import { tenancyService } from "./tenancy.service"
 import { customerService } from "./customer.service"
 import { storeTransactionService } from "./store-transaction.service"
+import { discountCodeService } from "./discount-code.service"
+import { notifyMerchantOnNewOrder } from "./order-notification.service"
+import { storeCheckoutService } from "./store-checkout.service"
 import { serializeOrder } from "@/server/lib/serializers"
 import { notFound, forbidden, badRequest } from "@/server/elysia/plugins/errors"
 import type {
@@ -104,6 +113,7 @@ export const storeService = {
       [orderCount],
       [ordersThisWeek],
       [revenueRow],
+      [lowStockCount],
       statusCounts,
       trendRows,
     ] = await Promise.all([
@@ -133,6 +143,18 @@ export const storeService = {
         })
         .from(orders)
         .where(eq(orders.storeId, storeId)),
+      db
+        .select({ count: count() })
+        .from(products)
+        .innerJoin(stores, eq(stores.id, products.storeId))
+        .where(
+          and(
+            eq(products.storeId, storeId),
+            eq(products.isActive, true),
+            isNotNull(products.inventory),
+            lte(products.inventory, stores.lowStockThreshold)
+          )
+        ),
       db
         .select({ status: orders.status, count: count() })
         .from(orders)
@@ -193,6 +215,7 @@ export const storeService = {
       cancelledOrders: statusMap.cancelled ?? 0,
       ordersThisWeek: ordersThisWeek.count,
       totalRevenue: revenueRow.total,
+      lowStockProducts: lowStockCount.count,
       ordersTrend,
       orderStatusBreakdown,
     }
@@ -446,6 +469,47 @@ export const productService = {
     await db.delete(products).where(eq(products.id, id))
     return { id }
   },
+
+  async duplicate(id: string, userId: string) {
+    await tenancyService.assertProductOwner(id, userId)
+    const existing = await productService.getById(id)
+    const options = await productOptionsService.load(id)
+    const baseSlug = slugify(`${existing.name}-copy`)
+    let slug = baseSlug
+    const collision = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(and(eq(products.storeId, existing.storeId), eq(products.slug, slug)))
+    if (collision.length > 0) slug = `${baseSlug}-${Date.now()}`
+
+    const [product] = await db
+      .insert(products)
+      .values({
+        storeId: existing.storeId,
+        categoryId: existing.categoryId,
+        name: `${existing.name} (Copy)`,
+        slug,
+        description: existing.description,
+        price: existing.price,
+        currency: existing.currency,
+        images: existing.images ?? [],
+        isActive: false,
+        isFeatured: false,
+        inventory: existing.inventory,
+        sortOrder: existing.sortOrder,
+      })
+      .returning()
+
+    if (
+      options.sizes.length ||
+      options.variations.length ||
+      options.modifiers.length
+    ) {
+      await productOptionsService.sync(product.id, options)
+    }
+
+    return product
+  },
 }
 
 export const orderService = {
@@ -504,12 +568,51 @@ export const orderService = {
     if (!store.isPublished) {
       badRequest("This store is not accepting orders")
     }
-    const total = input.items
-      .reduce(
-        (sum, item) => sum + parseFloat(item.price) * item.quantity,
-        0
+
+    const fulfillmentType = input.fulfillmentType ?? "pickup"
+    if (fulfillmentType === "delivery" && !store.deliveryEnabled) {
+      badRequest("Delivery is not available for this store")
+    }
+    if (fulfillmentType === "pickup" && !store.pickupEnabled) {
+      badRequest("Pickup is not available for this store")
+    }
+
+    const subtotalNum = calculateSubtotal(input.items)
+    let discountCode: string | null = null
+    let discountAmount = 0
+
+    if (input.discountCode?.trim()) {
+      const validated = await discountCodeService.validate(
+        store.id,
+        input.discountCode,
+        subtotalNum
       )
-      .toFixed(2)
+      discountCode = validated.code.code
+      discountAmount = parseFloat(validated.discountAmount)
+    }
+
+    const deliveryFeeNum = calculateDeliveryFee({
+      subtotal: subtotalNum,
+      fulfillmentType,
+      deliveryEnabled: store.deliveryEnabled,
+      deliveryFee: store.deliveryFee,
+      freeDeliveryMinimum: store.freeDeliveryMinimum,
+    })
+
+    const total = calculateOrderTotal({
+      subtotal: subtotalNum,
+      deliveryFee: deliveryFeeNum,
+      discountAmount,
+    }).toFixed(2)
+
+    const subtotal = subtotalNum.toFixed(2)
+    const trackingToken = randomBytes(16).toString("hex")
+    const source =
+      input.source ?? (store.orderMode === "whatsapp" ? "whatsapp" : "checkout")
+    const needsPayment =
+      store.storefrontPaymentsEnabled &&
+      store.orderMode === "managed" &&
+      source !== "whatsapp"
 
     const quantityByProduct = new Map<string, number>()
     for (const item of input.items) {
@@ -550,8 +653,15 @@ export const orderService = {
         customerId: customer.id,
         customerName: input.customerName,
         customerPhone: input.customerPhone,
+        subtotal,
+        deliveryFee: deliveryFeeNum.toFixed(2),
+        discountCode,
+        discountAmount: discountAmount.toFixed(2),
         total,
-        source: input.source ?? (store.orderMode === "whatsapp" ? "whatsapp" : "checkout"),
+        fulfillmentType,
+        paymentStatus: needsPayment ? "unpaid" : "not_required",
+        trackingToken,
+        source,
       })
       .returning()
 
@@ -567,6 +677,19 @@ export const orderService = {
       orderStatus: order.status,
     })
 
+    if (discountCode) {
+      const [codeRow] = await db
+        .select()
+        .from(storeDiscountCodes)
+        .where(
+          and(
+            eq(storeDiscountCodes.storeId, store.id),
+            eq(storeDiscountCodes.code, discountCode)
+          )
+        )
+      if (codeRow) await discountCodeService.incrementUsage(codeRow.id)
+    }
+
     for (const [productId, quantity] of quantityByProduct) {
       await db
         .update(products)
@@ -580,7 +703,55 @@ export const orderService = {
     }
 
     const itemsMap = await orderItemsService.loadByOrderIds([order.id])
-    return serializeOrder(order, itemsMap[order.id] ?? [])
+    const items = itemsMap[order.id] ?? []
+    const serialized = serializeOrder(order, items, { storeSlug: store.slug })
+
+    const notification = await notifyMerchantOnNewOrder({
+      order: serialized,
+      storeId: store.id,
+      storeName: store.name,
+      storeSlug: store.slug,
+      trackingToken,
+    })
+
+    let checkoutUrl: string | null = null
+    if (needsPayment) {
+      const payment = await storeCheckoutService.createPayment({
+        orderId: order.id,
+        storeId: store.id,
+        amount: total,
+        currency: store.currency ?? "XAF",
+        customerName: input.customerName,
+        customerPhone: input.customerPhone,
+        customerEmail: input.customerEmail,
+      })
+      checkoutUrl = payment.checkoutUrl
+    }
+
+    return serializeOrder(order, items, {
+      storeSlug: store.slug,
+      checkoutUrl,
+      merchantWhatsAppUrl: notification?.merchantWhatsApp ?? null,
+    })
+  },
+
+  async getByTrackingToken(storeSlug: string, trackingToken: string) {
+    const store = await storeService.getBySlug(storeSlug)
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.storeId, store.id),
+          eq(orders.trackingToken, trackingToken)
+        )
+      )
+    if (!order) notFound("Order not found")
+
+    const itemsMap = await orderItemsService.loadByOrderIds([order.id])
+    return serializeOrder(order, itemsMap[order.id] ?? [], {
+      storeSlug: store.slug,
+    })
   },
 
   async updateStatus(id: string, userId: string, input: UpdateOrderStatusInput) {

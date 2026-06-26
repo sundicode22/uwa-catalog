@@ -1,7 +1,7 @@
 "use client"
 
 import type { Country } from "react-phone-number-input"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Image from "next/image"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { toast } from "sonner"
@@ -20,8 +20,14 @@ import { PhoneInput } from "@/components/ui/phone-input"
 import { Modal, ModalBody, ModalFooter, ModalForm, ModalHeader, ModalTitle } from "@/components/ui/modal"
 import { useCart } from "./cart-context"
 import { useCreateOrder } from "@/hooks/use-orders"
+import { useValidateDiscount } from "@/hooks/use-discounts"
 import { formatSelectionsLabel } from "@/lib/product-options"
 import { formatMoney } from "@/lib/format"
+import {
+  calculateDeliveryFee,
+  calculateOrderTotal,
+  calculateSubtotal,
+} from "@/lib/checkout/totals"
 import { getSiteUrl } from "@/lib/seo/site"
 import {
   buildWhatsAppOrderMessage,
@@ -36,7 +42,7 @@ import {
   getMaxCartQuantity,
   isInStock,
 } from "@/lib/inventory"
-import type { Store } from "@/types/domain"
+import type { FulfillmentType, Order, Store } from "@/types/domain"
 
 interface CartDrawerProps {
   store: Store
@@ -44,7 +50,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
-  const { cartOpen, setCartOpen, items, removeItem, updateQuantity, clearCart, total, itemCount } =
+  const { cartOpen, setCartOpen, items, removeItem, updateQuantity, clearCart, itemCount } =
     useCart()
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
@@ -52,8 +58,47 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
   const [customerAddress, setCustomerAddress] = useState("")
   const [customerCity, setCustomerCity] = useState("")
   const [showOptionalDetails, setShowOptionalDetails] = useState(false)
+  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>("pickup")
+  const [discountInput, setDiscountInput] = useState("")
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string
+    amount: number
+  } | null>(null)
   const createOrder = useCreateOrder(store.id)
+  const validateDiscount = useValidateDiscount()
   const isWhatsAppMode = store.orderMode === "whatsapp"
+
+  const subtotal = useMemo(
+    () =>
+      calculateSubtotal(
+        items.map((item) => ({
+          price: item.unitPrice.toFixed(2),
+          quantity: item.quantity,
+        }))
+      ),
+    [items]
+  )
+  const deliveryFee = useMemo(
+    () =>
+      calculateDeliveryFee({
+        subtotal,
+        fulfillmentType,
+        deliveryEnabled: store.deliveryEnabled ?? false,
+        deliveryFee: store.deliveryFee ?? "0",
+        freeDeliveryMinimum: store.freeDeliveryMinimum,
+      }),
+    [subtotal, fulfillmentType, store]
+  )
+  const discountAmount = appliedDiscount?.amount ?? 0
+  const orderTotal = useMemo(
+    () =>
+      calculateOrderTotal({
+        subtotal,
+        deliveryFee,
+        discountAmount,
+      }),
+    [subtotal, deliveryFee, discountAmount]
+  )
 
   const phoneValid = customerPhone ? isValidPhoneNumber(customerPhone) : false
   const phoneDefaultCountry = defaultPhoneCountry(store.currency) as Country
@@ -74,6 +119,18 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       normalizeWhatsAppPhone(store.whatsappNumber).length < 8
     ) {
       toast.error("Store WhatsApp number is invalid — update it in Settings")
+      return
+    }
+
+    if (
+      fulfillmentType === "delivery" &&
+      !(store.deliveryEnabled ?? false)
+    ) {
+      toast.error("Delivery is not available for this store")
+      return
+    }
+    if (fulfillmentType === "delivery" && !customerAddress.trim()) {
+      toast.error("Enter a delivery address")
       return
     }
 
@@ -102,8 +159,9 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     const whatsAppWindow =
       isWhatsAppMode && store.whatsappNumber ? prepareWhatsAppChat() : null
 
+    let order: Order | null = null
     try {
-      await createOrder.mutateAsync({
+      order = await createOrder.mutateAsync({
         body: {
           storeId: store.id,
           customerName,
@@ -113,10 +171,19 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
           customerCity: customerCity || undefined,
           items: orderItems,
           source: isWhatsAppMode ? "whatsapp" : "checkout",
+          fulfillmentType,
+          discountCode: appliedDiscount?.code,
         },
       })
     } catch {
       whatsAppWindow?.close()
+      return
+    }
+
+    if (order.checkoutUrl) {
+      clearCart()
+      setCartOpen(false)
+      window.location.assign(order.checkoutUrl)
       return
     }
 
@@ -133,7 +200,11 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
           city: customerCity || undefined,
         },
         items: orderItems,
-        total,
+        total: orderTotal,
+        fulfillmentType,
+        deliveryFee,
+        discountAmount,
+        discountCode: appliedDiscount?.code ?? null,
         origin: getCatalogOrigin(getSiteUrl()),
       })
 
@@ -144,7 +215,11 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
       }
       toast.success("Order saved — send the message in WhatsApp to confirm")
     } else {
-      toast.success("Order placed")
+      toast.success("Order placed", {
+        description: order.trackingUrl
+          ? "Save your tracking link to check status later."
+          : undefined,
+      })
     }
 
     clearCart()
@@ -155,6 +230,29 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     setCustomerAddress("")
     setCustomerCity("")
     setShowOptionalDetails(false)
+    setFulfillmentType("pickup")
+    setDiscountInput("")
+    setAppliedDiscount(null)
+  }
+
+  async function handleApplyDiscount() {
+    if (!discountInput.trim()) return
+    try {
+      const result = await validateDiscount.mutateAsync({
+        body: {
+          storeId: store.id,
+          code: discountInput.trim(),
+          subtotal: subtotal.toFixed(2),
+        },
+      })
+      setAppliedDiscount({
+        code: result.code.code,
+        amount: parseFloat(result.discountAmount),
+      })
+      toast.success("Discount applied")
+    } catch {
+      setAppliedDiscount(null)
+    }
   }
 
   return (
@@ -285,6 +383,28 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
 
           {items.length > 0 && (
             <div className="space-y-3 rounded-xl bg-muted/30 p-4">
+              {(store.pickupEnabled ?? true) || (store.deliveryEnabled ?? false) ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {(store.pickupEnabled ?? true) ? (
+                    <Button
+                      type="button"
+                      variant={fulfillmentType === "pickup" ? "default" : "outline"}
+                      onClick={() => setFulfillmentType("pickup")}
+                    >
+                      Pickup
+                    </Button>
+                  ) : null}
+                  {(store.deliveryEnabled ?? false) ? (
+                    <Button
+                      type="button"
+                      variant={fulfillmentType === "delivery" ? "default" : "outline"}
+                      onClick={() => setFulfillmentType("delivery")}
+                    >
+                      Delivery
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
               <div className="relative">
                 <UserIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                 <FormInput
@@ -308,7 +428,9 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               >
                 {showOptionalDetails
                   ? "Hide optional details"
-                  : "Add email or delivery details (optional)"}
+                  : fulfillmentType === "delivery"
+                    ? "Add email or delivery details"
+                    : "Add email or delivery details (optional)"}
               </button>
               {showOptionalDetails ? (
                 <div className="space-y-3">
@@ -333,13 +455,52 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                   />
                 </div>
               ) : null}
+              <div className="flex gap-2">
+                <FormInput
+                  className="bg-background"
+                  placeholder="Discount code"
+                  value={discountInput}
+                  onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!discountInput || validateDiscount.isPending}
+                  onClick={handleApplyDiscount}
+                >
+                  Apply
+                </Button>
+              </div>
+              {appliedDiscount ? (
+                <p className="text-sm text-green-700">
+                  {appliedDiscount.code} applied (-{formatMoney(appliedDiscount.amount, store.currency)})
+                </p>
+              ) : null}
+              <div className="space-y-1 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="tabular-nums">{formatMoney(subtotal, store.currency)}</span>
+                </div>
+                {deliveryFee > 0 ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Delivery</span>
+                    <span className="tabular-nums">{formatMoney(deliveryFee, store.currency)}</span>
+                  </div>
+                ) : null}
+                {discountAmount > 0 ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Discount</span>
+                    <span className="tabular-nums">-{formatMoney(discountAmount, store.currency)}</span>
+                  </div>
+                ) : null}
+              </div>
               <div className="flex items-center justify-between font-semibold">
                 <span className="flex items-center gap-2">
                   <ReceiptIcon className="size-4 text-muted-foreground" />
                   Total
                 </span>
                 <span className="text-lg tabular-nums whitespace-nowrap">
-                  {formatMoney(total, store.currency)}
+                  {formatMoney(orderTotal, store.currency)}
                 </span>
               </div>
             </div>

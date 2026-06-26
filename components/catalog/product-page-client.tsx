@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { MessageCircleIcon } from "lucide-react"
 import { BackLink } from "@/components/ui/back-link"
 import { Button } from "@/components/ui/button"
 import { ProductOptionsModal } from "@/components/catalog/product-options-modal"
@@ -12,6 +13,9 @@ import { productHasOptions } from "@/lib/product-options"
 import { resolveStoreCurrency } from "@/lib/currency"
 import { formatMoney } from "@/lib/format"
 import { formatInventoryLabel, formatStockRemaining, isInStock } from "@/lib/inventory"
+import { getCatalogOrigin, openWhatsAppChat, whatsAppUrl } from "@/lib/whatsapp"
+import { getSiteUrl } from "@/lib/seo/site"
+import { getProductPath } from "@/lib/seo/paths"
 import type { Category, Product, StoreWithCategories } from "@/types/domain"
 
 interface ProductPageClientProps {
@@ -36,12 +40,28 @@ export function ProductPageClient({
 
   const currency = resolveStoreCurrency(store)
 
+  const isWhatsAppMode = store.orderMode === "whatsapp"
+
   function handleAddToCart() {
     if (hasOptions) {
       setOptionsOpen(true)
       return
     }
     addItem(product)
+  }
+
+  function handleWhatsAppOrder() {
+    if (!store.whatsappNumber) return
+    const origin = getCatalogOrigin(getSiteUrl())
+    const productUrl = `${origin}${getProductPath(store.slug, product.slug)}`
+    const message = [
+      `Hi ${store.name}, I'd like to order:`,
+      "",
+      `*${product.name}* — ${formatMoney(product.price, currency)}`,
+      productUrl,
+    ].join("\n")
+    const url = whatsAppUrl(store.whatsappNumber, message)
+    if (url) openWhatsAppChat(store.whatsappNumber, message)
   }
 
   return (
@@ -128,18 +148,32 @@ export function ProductPageClient({
               {stockLabel}
             </p>
           ) : null}
-          <Button
-            size="lg"
-            className={
-              premium
-                ? "h-12 w-full max-w-sm rounded-none bg-foreground text-background hover:bg-foreground/90 sm:w-auto sm:px-10"
-                : undefined
-            }
-            onClick={handleAddToCart}
-            disabled={!isInStock(product)}
-          >
-            {isInStock(product) ? "Add to cart" : "Out of stock"}
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              size="lg"
+              className={
+                premium
+                  ? "h-12 w-full max-w-sm rounded-none bg-foreground text-background hover:bg-foreground/90 sm:w-auto sm:px-10"
+                  : undefined
+              }
+              onClick={handleAddToCart}
+              disabled={!isInStock(product)}
+            >
+              {isInStock(product) ? "Add to cart" : "Out of stock"}
+            </Button>
+            {isWhatsAppMode && store.whatsappNumber ? (
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2"
+                onClick={handleWhatsAppOrder}
+                disabled={!isInStock(product)}
+              >
+                <MessageCircleIcon className="size-4" />
+                Order on WhatsApp
+              </Button>
+            ) : null}
+          </div>
         </div>
       </main>
 

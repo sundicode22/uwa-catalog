@@ -13,6 +13,7 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
+  useDuplicateProduct,
 } from "@/hooks/use-products"
 import { useCategories } from "@/hooks/use-categories"
 import { useStore } from "@/hooks/use-store"
@@ -45,6 +46,7 @@ export default function ProductsPage() {
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
+  const duplicateProduct = useDuplicateProduct()
 
   const products = (result?.data as Product[] | undefined) ?? []
   const meta = result?.meta
@@ -56,6 +58,9 @@ export default function ProductsPage() {
       setFormOpen(true)
     },
     onDelete: (product) => setDeletingProduct(product),
+    onDuplicate: async (product) => {
+      await duplicateProduct.mutateAsync({ params: { id: product.id } })
+    },
     onToggleActive: async (product) => {
       await updateProduct.mutateAsync({
         params: { id: product.id },

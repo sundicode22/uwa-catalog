@@ -1,4 +1,6 @@
+import { randomBytes } from "crypto"
 import type { categories, products, stores, orders, storeCustomers, storeTransactions } from "@/lib/db"
+import { getOrderTrackingUrl } from "@/lib/order-tracking"
 import type { OrderItem, ProductOptionCounts } from "@/types/domain"
 
 export function serializeStore(store: typeof stores.$inferSelect) {
@@ -52,8 +54,15 @@ export function serializeProduct(product: typeof products.$inferSelect) {
 
 export function serializeOrder(
   order: typeof orders.$inferSelect,
-  items: OrderItem[]
+  items: OrderItem[],
+  extras?: {
+    storeSlug?: string
+    trackingUrl?: string
+    checkoutUrl?: string | null
+    merchantWhatsAppUrl?: string | null
+  }
 ) {
+  const trackingToken = order.trackingToken ?? ""
   return {
     id: order.id,
     storeId: order.storeId,
@@ -61,7 +70,21 @@ export function serializeOrder(
     customerName: order.customerName,
     customerPhone: order.customerPhone,
     items,
+    subtotal: order.subtotal ?? order.total,
+    deliveryFee: order.deliveryFee ?? "0",
+    discountCode: order.discountCode ?? null,
+    discountAmount: order.discountAmount ?? "0",
     total: order.total,
+    fulfillmentType: order.fulfillmentType ?? "pickup",
+    paymentStatus: order.paymentStatus ?? "not_required",
+    trackingToken,
+    trackingUrl:
+      extras?.trackingUrl ??
+      (extras?.storeSlug && trackingToken
+        ? getOrderTrackingUrl(extras.storeSlug, trackingToken)
+        : undefined),
+    checkoutUrl: extras?.checkoutUrl ?? null,
+    merchantWhatsAppUrl: extras?.merchantWhatsAppUrl ?? null,
     status: order.status,
     source: order.source,
     createdAt: order.createdAt.toISOString(),

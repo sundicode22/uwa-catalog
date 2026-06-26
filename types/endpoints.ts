@@ -1,6 +1,8 @@
 import type {
   CreateCategoryInput,
   CreateOrderInput,
+  CreateDiscountCodeInput,
+  DiscountCode,
   CreateProductInput,
   CreateStoreInput,
   CreateStoreCustomerInput,
@@ -20,6 +22,8 @@ import type {
   StoreWithCategories,
   UpdateCategoryInput,
   UpdateOrderStatusInput,
+  UpdateDiscountCodeInput,
+  ValidateDiscountResult,
   UpdateProductInput,
   UpdateStoreInput,
   UploadResult,
@@ -100,6 +104,26 @@ export interface ApiEndpoints {
     response: Product
   }
   "DELETE /products/:id": { params: { id: string }; response: { id: string } }
+  "POST /products/:id/duplicate": { params: { id: string }; response: Product }
+
+  "GET /stores/:storeId/discounts": {
+    params: { storeId: string }
+    response: DiscountCode[]
+  }
+  "POST /discounts": {
+    body: CreateDiscountCodeInput
+    response: DiscountCode
+  }
+  "PATCH /discounts/:id": {
+    params: { id: string }
+    body: UpdateDiscountCodeInput
+    response: DiscountCode
+  }
+  "DELETE /discounts/:id": { params: { id: string }; response: { id: string } }
+  "POST /discounts/validate": {
+    body: { storeId: string; code: string; subtotal: string }
+    response: ValidateDiscountResult
+  }
 
   "GET /stores/:storeId/orders": {
     params: { storeId: string }
@@ -107,6 +131,10 @@ export interface ApiEndpoints {
     response: Paginated<Order>
   }
   "POST /orders": { body: CreateOrderInput; response: Order }
+  "GET /stores/slug/:slug/orders/:token": {
+    params: { slug: string; token: string }
+    response: Order
+  }
   "PATCH /orders/:id/status": {
     params: { id: string }
     body: UpdateOrderStatusInput

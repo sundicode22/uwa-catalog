@@ -28,6 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { DiscountCodesCard } from "@/components/dashboard/discount-codes-card"
 import { StoreImageUpload } from "@/components/uploads/store-image-upload"
 import { useStore } from "@/hooks/use-store"
 import { useApiMutation } from "@/hooks/use-api"
@@ -51,6 +52,13 @@ const schema = z.object({
   isPublished: z.boolean(),
   currency: z.string().min(3).max(3),
   storefrontTier: z.enum(["basic", "premium"]),
+  pickupEnabled: z.boolean(),
+  deliveryEnabled: z.boolean(),
+  deliveryFee: z.string(),
+  freeDeliveryMinimum: z.string().optional(),
+  lowStockThreshold: z.number().min(0),
+  notifyOnNewOrder: z.boolean(),
+  storefrontPaymentsEnabled: z.boolean(),
 })
 
 const PAYMENT_PROVIDERS = [
@@ -87,6 +95,13 @@ export default function SettingsPage() {
       isPublished: false,
       currency: "USD",
       storefrontTier: "basic",
+      pickupEnabled: true,
+      deliveryEnabled: false,
+      deliveryFee: "0",
+      freeDeliveryMinimum: "",
+      lowStockThreshold: 5,
+      notifyOnNewOrder: true,
+      storefrontPaymentsEnabled: false,
     },
   })
 
@@ -103,6 +118,13 @@ export default function SettingsPage() {
         isPublished: store.isPublished,
         currency: store.currency ?? "USD",
         storefrontTier: store.storefrontTier ?? "basic",
+        pickupEnabled: store.pickupEnabled ?? true,
+        deliveryEnabled: store.deliveryEnabled ?? false,
+        deliveryFee: store.deliveryFee ?? "0",
+        freeDeliveryMinimum: store.freeDeliveryMinimum ?? "",
+        lowStockThreshold: store.lowStockThreshold ?? 5,
+        notifyOnNewOrder: store.notifyOnNewOrder ?? true,
+        storefrontPaymentsEnabled: store.storefrontPaymentsEnabled ?? false,
       })
     }
   }, [store, form])
@@ -330,6 +352,123 @@ export default function SettingsPage() {
 
           <Card className="shadow-none">
             <CardHeader>
+              <CardTitle>Delivery & pickup</CardTitle>
+              <CardDescription>How customers receive orders</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="pickupEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Pickup enabled</FormLabel>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="deliveryEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Delivery enabled</FormLabel>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="deliveryFee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Delivery fee</FormLabel>
+                    <FormControl>
+                      <FormInput {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="freeDeliveryMinimum"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Free delivery above (optional)</FormLabel>
+                    <FormControl>
+                      <FormInput {...field} placeholder="e.g. 50" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-none">
+            <CardHeader>
+              <CardTitle>Notifications & inventory</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="notifyOnNewOrder"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <div>
+                      <FormLabel>Notify on new orders</FormLabel>
+                      <FormDescription>
+                        Log alerts and prepare merchant WhatsApp links for new orders.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lowStockThreshold"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Low stock threshold</FormLabel>
+                    <FormControl>
+                      <FormInput type="number" min={0} {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-none">
+            <CardHeader>
+              <CardTitle>Online payments</CardTitle>
+              <CardDescription>
+                Accept NotchPay (Mobile Money) on managed checkout orders.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="storefrontPaymentsEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Enable storefront payments</FormLabel>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-none">
+            <CardHeader>
               <CardTitle>Catalog Layout</CardTitle>
               <CardDescription>Default product display for your catalog</CardDescription>
             </CardHeader>
@@ -366,6 +505,8 @@ export default function SettingsPage() {
           </Button>
         </form>
       </Form>
+
+      <DiscountCodesCard store={store} />
 
       <Card className="shadow-none opacity-60">
         <CardHeader>

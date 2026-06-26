@@ -31,6 +31,9 @@ export const orderRoutes = new Elysia()
   .post("/orders", ({ body }) => orderController.create(body), {
     body: createOrderBody,
   })
+  .get("/stores/slug/:slug/orders/:token", ({ params }) =>
+    orderController.getByTrackingToken(params.slug, params.token)
+  )
   .patch(
     "/orders/:id/status",
     ({ params, userId, body }) =>

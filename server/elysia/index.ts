@@ -14,6 +14,8 @@ import {
   customerRoutes,
   transactionRoutes,
 } from "./routes"
+import { discountRoutes } from "./routes/discount.route"
+import { checkoutRoutes } from "./routes/checkout.route"
 
 export const app = new Elysia({ prefix: "/api" })
   .use(responsePlugin)
@@ -29,5 +31,7 @@ export const app = new Elysia({ prefix: "/api" })
   .use(billingRoutes)
   .use(customerRoutes)
   .use(transactionRoutes)
+  .use(discountRoutes)
+  .use(checkoutRoutes)
 
 export type App = typeof app

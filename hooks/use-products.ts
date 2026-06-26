@@ -64,6 +64,19 @@ export function useDeleteProduct() {
   })
 }
 
+export function useDuplicateProduct() {
+  const { store } = useStore()
+  return useApiMutation("POST /products/:id/duplicate", "POST", {
+    successMessage: "Product duplicated",
+    invalidateKeys: store
+      ? [
+          ...productInvalidation(store.id),
+          ["product-options"],
+        ]
+      : [["product-options"]],
+  })
+}
+
 export function usePublicProducts(
   storeId: string,
   page = 1,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, DownloadIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
@@ -13,6 +13,7 @@ import {
   useUpdateCustomer,
 } from "@/hooks/use-customers"
 import { useStore } from "@/hooks/use-store"
+import { downloadCsv } from "@/lib/export-csv"
 import type { StoreCustomer } from "@/types/domain"
 
 export default function CustomersPage() {
@@ -53,15 +54,41 @@ export default function CustomersPage() {
             add or edit them here.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingCustomer(null)
-            setFormOpen(true)
-          }}
-        >
-          <PlusIcon className="size-4" />
-          Add Customer
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2"
+            disabled={customers.length === 0}
+            onClick={() =>
+              downloadCsv("customers.csv", [
+                ["Name", "Phone", "Email", "Orders", "Total spent", "Last order"],
+                ...customers.map((customer) => [
+                  customer.name,
+                  customer.phone,
+                  customer.email ?? "",
+                  String(customer.totalOrders),
+                  customer.totalSpent,
+                  customer.lastOrderAt
+                    ? new Date(customer.lastOrderAt).toLocaleString()
+                    : "",
+                ]),
+              ])
+            }
+          >
+            <DownloadIcon className="size-4" />
+            Export CSV
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingCustomer(null)
+              setFormOpen(true)
+            }}
+          >
+            <PlusIcon className="size-4" />
+            Add Customer
+          </Button>
+        </div>
       </div>
 
       <DataTableToolbar

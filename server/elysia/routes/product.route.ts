@@ -46,3 +46,6 @@ export const productRoutes = new Elysia()
   .delete("/products/:id", ({ params, userId }) =>
     productController.delete(userId, params.id)
   )
+  .post("/products/:id/duplicate", ({ params, userId }) =>
+    productController.duplicate(userId, params.id)
+  )

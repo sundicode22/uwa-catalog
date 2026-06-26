@@ -27,4 +27,11 @@ export const updateStoreBody = t.Object({
   storefrontTier: t.Optional(
     t.Union([t.Literal("basic"), t.Literal("premium")])
   ),
+  pickupEnabled: t.Optional(t.Boolean()),
+  deliveryEnabled: t.Optional(t.Boolean()),
+  deliveryFee: t.Optional(t.String()),
+  freeDeliveryMinimum: t.Optional(t.Nullable(t.String())),
+  lowStockThreshold: t.Optional(t.Number()),
+  notifyOnNewOrder: t.Optional(t.Boolean()),
+  storefrontPaymentsEnabled: t.Optional(t.Boolean()),
 })

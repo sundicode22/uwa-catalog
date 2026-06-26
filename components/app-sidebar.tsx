@@ -12,6 +12,7 @@ import {
   SettingsIcon,
   StoreIcon,
   CreditCardIcon,
+  QrCodeIcon,
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -65,6 +66,12 @@ const navItems = [
     title: "Transactions",
     url: "/dashboard/transactions",
     icon: <ReceiptIcon />,
+    items: [],
+  },
+  {
+    title: "Share",
+    url: "/dashboard/share",
+    icon: <QrCodeIcon />,
     items: [],
   },
   {

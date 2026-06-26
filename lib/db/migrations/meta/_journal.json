@@ -78,6 +78,20 @@
       "when": 1782339298117,
       "tag": "0010_icy_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782400000000,
+      "tag": "0011_store_features",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1782473493771,
+      "tag": "0012_little_silverclaw",
+      "breakpoints": true
     }
   ]
 }
