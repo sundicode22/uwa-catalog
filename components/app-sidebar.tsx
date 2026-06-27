@@ -18,7 +18,6 @@ import {
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { StoreSwitcher } from "@/components/dashboard/store-switcher"
-import { LocaleSwitcher } from "@/components/locale-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -107,9 +106,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-2 pb-2">
-          <LocaleSwitcher className="w-full" />
-        </div>
         <NavUser
           user={{
             name: session?.user?.name ?? t("user"),
