@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl"
 import { resolveLocale } from "@/lib/i18n/resolve-locale"
+import { Providers } from "../providers"
 
 export default async function CatalogLayout({
   children,
@@ -11,7 +12,7 @@ export default async function CatalogLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
+      <Providers>{children}</Providers>
     </NextIntlClientProvider>
   )
 }
