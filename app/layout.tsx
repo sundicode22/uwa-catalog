@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Inter, Syne } from "next/font/google"
 import { headers } from "next/headers"
 import "./globals.css"
-import { getSiteName, getSiteUrl } from "@/lib/seo/site"
+import { getDefaultSiteMetadata } from "@/lib/seo/site-metadata"
 import { routing } from "@/i18n/routing"
 
 const inter = Inter({
@@ -16,44 +16,7 @@ const syne = Syne({
   weight: ["600", "700", "800"],
 })
 
-const siteName = getSiteName()
-const siteUrl = getSiteUrl()
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: siteName,
-    template: `%s | ${siteName}`,
-  },
-  description: "Create and share beautiful product catalogs for your store",
-  applicationName: siteName,
-  alternates: {
-    canonical: "/",
-    languages: Object.fromEntries(
-      routing.locales.map((loc) => [
-        loc,
-        loc === routing.defaultLocale ? siteUrl : `${siteUrl}/${loc}`,
-      ])
-    ),
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: siteUrl,
-    siteName,
-    title: siteName,
-    description: "Create and share beautiful product catalogs for your store",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteName,
-    description: "Create and share beautiful product catalogs for your store",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-}
+export const metadata: Metadata = getDefaultSiteMetadata()
 
 export default async function RootLayout({
   children,

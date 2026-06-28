@@ -1,7 +1,48 @@
-import { absoluteUrl } from "./site"
+import { absoluteUrl, getSiteName, getSiteUrl } from "./site"
 import { getProductPath, getStorePath } from "./paths"
 
 type ProductImage = { url: string; publicId: string }
+
+export function buildLandingJsonLd(description: string) {
+  const siteName = getSiteName()
+  const siteUrl = getSiteUrl()
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: siteName,
+        description,
+        inLanguage: ["en", "fr"],
+        publisher: { "@id": `${siteUrl}/#organization` },
+      },
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: siteName,
+        url: siteUrl,
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${siteUrl}/#application`,
+        name: siteName,
+        url: siteUrl,
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        description,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+        publisher: { "@id": `${siteUrl}/#organization` },
+      },
+    ],
+  }
+}
 
 export function buildStoreJsonLd({
   storeName,

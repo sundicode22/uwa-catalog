@@ -10,7 +10,9 @@ export function buildProductDescription(
   description?: string | null
 ) {
   if (description?.trim()) return truncateText(description)
-  return truncateText(`Shop ${productName} at ${storeName}. Browse pricing and order online.`)
+  return truncateText(
+    `Shop ${productName} from ${storeName}. View pricing, choose options, and order online in a few taps.`
+  )
 }
 
 export function buildStoreDescription(
@@ -19,6 +21,6 @@ export function buildStoreDescription(
 ) {
   if (description?.trim()) return truncateText(description)
   return truncateText(
-    `Browse the ${storeName} catalog. Discover products, prices, and order online.`
+    `Browse the ${storeName} online catalog. Explore products, compare prices, and place orders from any device.`
   )
 }

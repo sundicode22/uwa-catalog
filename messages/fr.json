@@ -364,7 +364,9 @@
     "unpublishedMessage": "Ce catalogue n'est pas encore en ligne. Revenez bientôt ou contactez le propriétaire."
   },
   "metadata": {
-    "description": "Créez et partagez de beaux catalogues produits pour votre boutique",
+    "siteTitle": "{appName} — Catalogues produits en ligne pour vendeurs modernes",
+    "description": "Publiez de beaux catalogues produits en quelques minutes. Gérez les stocks, acceptez les commandes via WhatsApp et partagez une vitrine — sans site e-commerce complet.",
+    "keywords": "catalogue produits, vitrine en ligne, commandes WhatsApp, gestion des stocks, créateur de catalogue, vente PME, catalogue partageable, commerce mobile",
     "account": "Compte",
     "dashboard": "Tableau de bord"
   }

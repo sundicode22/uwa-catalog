@@ -72,7 +72,14 @@ export function buildStoreMetadata({
       description: metaDescription,
       ...(image ? { images: [image] } : {}),
     },
-    keywords: [storeName, "online catalog", "shop", "products"],
+    keywords: [
+      storeName,
+      "online catalog",
+      "product catalog",
+      "online storefront",
+      "shop online",
+      "WhatsApp orders",
+    ],
   }
 }
 

@@ -364,7 +364,9 @@
     "unpublishedMessage": "This catalog is not live yet. Check back soon or contact the store owner."
   },
   "metadata": {
-    "description": "Create and share beautiful product catalogs for your store",
+    "siteTitle": "{appName} — Online Product Catalogs for Modern Sellers",
+    "description": "Publish beautiful product catalogs in minutes. Manage inventory, accept orders with WhatsApp checkout, and share a branded storefront link — no custom website needed.",
+    "keywords": "product catalog, online storefront, WhatsApp orders, inventory management, catalog maker, small business selling, shareable catalog, mobile commerce",
     "account": "Account",
     "dashboard": "Dashboard"
   }
