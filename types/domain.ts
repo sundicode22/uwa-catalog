@@ -403,6 +403,7 @@ export interface CreateOrderInput {
   source?: OrderSource
   fulfillmentType?: FulfillmentType
   discountCode?: string
+  payOnline?: boolean
 }
 
 export interface UpdateOrderStatusInput {

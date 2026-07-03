@@ -612,7 +612,8 @@ export const orderService = {
     const needsPayment =
       store.storefrontPaymentsEnabled &&
       store.orderMode === "managed" &&
-      source !== "whatsapp"
+      source !== "whatsapp" &&
+      input.payOnline === true
 
     const quantityByProduct = new Map<string, number>()
     for (const item of input.items) {

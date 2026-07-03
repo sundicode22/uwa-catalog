@@ -347,7 +347,9 @@
     "invalidWhatsappSettings": "Store WhatsApp number is invalid — update it in Settings",
     "deliveryUnavailable": "Delivery is not available for this store",
     "deliveryAddressRequired": "Enter a delivery address",
-    "wantDelivery": "I want delivery"
+    "wantDelivery": "I want delivery",
+    "payOnline": "Pay online",
+    "payAndOrder": "Pay & place order"
   },
   "catalog": {
     "goHome": "Go home",

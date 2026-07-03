@@ -16,6 +16,7 @@ export const createOrderBody = t.Object({
     t.Union([t.Literal("pickup"), t.Literal("delivery")])
   ),
   discountCode: t.Optional(t.String()),
+  payOnline: t.Optional(t.Boolean()),
 })
 
 export const updateOrderStatusBody = t.Object({

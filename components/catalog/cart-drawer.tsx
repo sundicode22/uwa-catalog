@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { isValidPhoneNumber } from "react-phone-number-input"
 import { toast } from "sonner"
 import {
+  CreditCardIcon,
   MessageCircleIcon,
   MinusIcon,
   PlusIcon,
@@ -76,6 +77,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     code: string
     amount: number
   } | null>(null)
+  const [payOnline, setPayOnline] = useState(false)
   const createOrder = useCreateOrder(store.id)
   const validateDiscount = useValidateDiscount()
   const isWhatsAppMode = store.orderMode === "whatsapp"
@@ -83,6 +85,11 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
   const pickupAvailable = store.pickupEnabled ?? true
   const showDeliveryCheckbox = deliveryAvailable && pickupAvailable
   const wantsDelivery = fulfillmentType === "delivery"
+
+  const canPayOnline =
+    store.storefrontPaymentsEnabled &&
+    store.orderMode === "managed" &&
+    !isWhatsAppMode
 
   const subtotal = useMemo(
     () =>
@@ -189,6 +196,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
           source: isWhatsAppMode ? "whatsapp" : "checkout",
           fulfillmentType,
           discountCode: appliedDiscount?.code,
+          payOnline: canPayOnline && payOnline ? true : undefined,
         },
       })
     } catch {
@@ -247,6 +255,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     setFulfillmentType(defaultFulfillmentType(store))
     setDiscountInput("")
     setAppliedDiscount(null)
+    setPayOnline(false)
   }
 
   async function handleApplyDiscount() {
@@ -273,12 +282,12 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
     <>
       {showFab ? (
         <Button
-          className="fixed right-4 bottom-4 z-40 size-12 shadow-lg"
+          className="fixed right-4 bottom-4 z-40 size-14 rounded-full shadow-lg"
           onClick={() => setCartOpen(true)}
         >
           <ShoppingCartIcon className="size-5" />
           {itemCount > 0 && (
-            <span className="absolute -top-2 -right-2 flex size-5 items-center justify-center bg-destructive text-xs text-destructive-foreground">
+            <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-destructive text-[10px] font-semibold text-destructive-foreground">
               {itemCount}
             </span>
           )}
@@ -289,7 +298,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
         open={cartOpen}
         onOpenChange={setCartOpen}
         mobileFullscreen
-        className="w-full max-w-none border-0 shadow-none sm:h-auto sm:max-h-[min(90vh,44rem)] sm:w-full sm:max-w-md sm:border"
+        className="w-full max-w-none border-0 shadow-none sm:h-auto sm:max-h-[min(92vh,52rem)] sm:w-full sm:max-w-lg sm:rounded-2xl sm:border sm:shadow-xl"
       >
         <ModalHeader
           className="border-0 px-4 sm:px-5"
@@ -298,11 +307,12 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
           <ModalTitle>{t("cartTitle", { count: itemCount })}</ModalTitle>
         </ModalHeader>
         <ModalBody className="px-4 sm:px-5">
-          <ModalForm className="my-0 space-y-4">
+          <ModalForm className="my-0 w-full max-w-none space-y-4">
           {items.length === 0 ? (
             <p className="py-8 text-center text-muted-foreground">{t("empty")}</p>
           ) : (
-            items.map((item) => {
+            <div className="divide-y divide-border/50">
+            {items.map((item) => {
               const stockLabel = formatStockRemaining(
                 item.product,
                 items,
@@ -314,10 +324,11 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                 item.quantity
               )
               const atMax = Number.isFinite(maxQty) && item.quantity >= maxQty
+              const lineTotal = item.unitPrice * item.quantity
 
               return (
-              <div key={item.lineKey} className="flex gap-3 py-3">
-                <div className="relative size-16 shrink-0 overflow-hidden rounded-lg">
+              <div key={item.lineKey} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-xl">
                   {item.product.images?.[0]?.url ? (
                     <Image
                       src={item.product.images[0].url}
@@ -329,10 +340,10 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                     <div className="size-full bg-muted" />
                   )}
                 </div>
-                <div className="flex flex-1 flex-col">
+                <div className="flex flex-1 flex-col justify-center">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <span className="font-medium">{item.product.name}</span>
+                      <span className="text-sm font-medium leading-tight">{item.product.name}</span>
                       {item.selections.size ||
                       item.selections.variations.length > 0 ||
                       item.selections.modifiers.length > 0 ? (
@@ -345,58 +356,61 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
                       onClick={() => removeItem(item.lineKey)}
                       aria-label={`Remove ${item.product.name}`}
                     >
-                      <Trash2Icon className="size-4" />
+                      <Trash2Icon className="size-3.5" />
                     </Button>
                   </div>
-                  <span className="text-sm tabular-nums text-muted-foreground whitespace-nowrap">
-                    {formatMoney(item.unitPrice, store.currency)}
-                  </span>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-7 rounded-full"
+                        onClick={() =>
+                          updateQuantity(item.lineKey, item.quantity - 1)
+                        }
+                        aria-label={`Decrease ${item.product.name} quantity`}
+                      >
+                        <MinusIcon className="size-3" />
+                      </Button>
+                      <span className="w-7 text-center text-sm tabular-nums font-medium">
+                        {item.quantity}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-7 rounded-full"
+                        disabled={atMax}
+                        onClick={() =>
+                          updateQuantity(item.lineKey, item.quantity + 1)
+                        }
+                        aria-label={`Increase ${item.product.name} quantity`}
+                      >
+                        <PlusIcon className="size-3" />
+                      </Button>
+                    </div>
+                    <span className="text-sm font-medium tabular-nums">
+                      {formatMoney(lineTotal, store.currency)}
+                    </span>
+                  </div>
                   {stockLabel ? (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="mt-0.5 text-[11px] text-muted-foreground">
                       {stockLabel}
                     </span>
                   ) : null}
-                  <div className="mt-2 flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-8"
-                      onClick={() =>
-                        updateQuantity(item.lineKey, item.quantity - 1)
-                      }
-                      aria-label={`Decrease ${item.product.name} quantity`}
-                    >
-                      <MinusIcon className="size-4" />
-                    </Button>
-                    <span className="w-8 text-center text-sm tabular-nums">
-                      {item.quantity}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-8"
-                      disabled={atMax}
-                      onClick={() =>
-                        updateQuantity(item.lineKey, item.quantity + 1)
-                      }
-                      aria-label={`Increase ${item.product.name} quantity`}
-                    >
-                      <PlusIcon className="size-4" />
-                    </Button>
-                  </div>
                 </div>
               </div>
-            )})
+            )})}
+            </div>
           )}
 
           {items.length > 0 && (
-            <div className="space-y-3 rounded-xl bg-muted/30 p-3 sm:p-4">
+            <div className="space-y-3 rounded-2xl bg-muted/30 p-4">
               {showDeliveryCheckbox ? (
                 <label className="flex cursor-pointer items-center gap-2.5 text-sm">
                   <Checkbox
@@ -411,14 +425,14 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               <div className="relative">
                 <UserIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                 <FormInput
-                  className="bg-background pl-9"
+                  className="rounded-xl bg-background pl-9"
                   placeholder={t("namePlaceholder")}
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                 />
               </div>
               <PhoneInput
-                className="bg-background"
+                className="rounded-xl bg-background"
                 defaultCountry={phoneDefaultCountry}
                 placeholder={t("phonePlaceholder")}
                 value={customerPhone}
@@ -427,14 +441,14 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               {wantsDelivery ? (
                 <div className="space-y-3">
                   <FormInput
-                    className="bg-background"
+                    className="rounded-xl bg-background"
                     placeholder={t("addressPlaceholder")}
                     value={customerAddress}
                     onChange={(e) => setCustomerAddress(e.target.value)}
                     required
                   />
                   <FormInput
-                    className="bg-background"
+                    className="rounded-xl bg-background"
                     placeholder={t("cityPlaceholder")}
                     value={customerCity}
                     onChange={(e) => setCustomerCity(e.target.value)}
@@ -453,7 +467,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               {showOptionalDetails ? (
                 <div className="space-y-3">
                   <FormInput
-                    className="bg-background"
+                    className="rounded-xl bg-background"
                     type="email"
                     placeholder={t("emailPlaceholder")}
                     value={customerEmail}
@@ -462,13 +476,13 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                   {!wantsDelivery ? (
                     <>
                       <FormInput
-                        className="bg-background"
+                        className="rounded-xl bg-background"
                         placeholder={t("addressPlaceholder")}
                         value={customerAddress}
                         onChange={(e) => setCustomerAddress(e.target.value)}
                       />
                       <FormInput
-                        className="bg-background"
+                        className="rounded-xl bg-background"
                         placeholder={t("cityPlaceholder")}
                         value={customerCity}
                         onChange={(e) => setCustomerCity(e.target.value)}
@@ -479,7 +493,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
               ) : null}
               <div className="flex gap-2">
                 <FormInput
-                  className="bg-background"
+                  className="rounded-xl bg-background"
                   placeholder={t("discountCode")}
                   value={discountInput}
                   onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
@@ -487,6 +501,7 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                 <Button
                   type="button"
                   variant="outline"
+                  className="rounded-xl"
                   disabled={!discountInput || validateDiscount.isPending}
                   onClick={handleApplyDiscount}
                 >
@@ -498,7 +513,30 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                   {appliedDiscount.code} applied (-{formatMoney(appliedDiscount.amount, store.currency)})
                 </p>
               ) : null}
-              <div className="space-y-1 text-sm">
+
+              {canPayOnline ? (
+                <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm transition-colors hover:bg-primary/10">
+                  <Checkbox
+                    checked={payOnline}
+                    onCheckedChange={(checked) => setPayOnline(checked === true)}
+                  />
+                  <CreditCardIcon className="size-4 text-primary" />
+                  <span className="font-medium">{t("payOnline")}</span>
+                </label>
+              ) : null}
+
+              <div className="space-y-1.5 pt-2 text-sm">
+                {items.map((item) => (
+                  <div key={item.lineKey} className="flex items-center justify-between text-muted-foreground">
+                    <span className="truncate pr-2">
+                      {item.product.name} x{item.quantity}
+                    </span>
+                    <span className="shrink-0 tabular-nums">
+                      {formatMoney(item.unitPrice * item.quantity, store.currency)}
+                    </span>
+                  </div>
+                ))}
+                <div className="my-1.5 border-t border-border/50" />
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{t("subtotal")}</span>
                   <span className="tabular-nums">{formatMoney(subtotal, store.currency)}</span>
@@ -512,16 +550,16 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
                 {discountAmount > 0 ? (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">{t("discount")}</span>
-                    <span className="tabular-nums">-{formatMoney(discountAmount, store.currency)}</span>
+                    <span className="tabular-nums text-green-700">-{formatMoney(discountAmount, store.currency)}</span>
                   </div>
                 ) : null}
               </div>
-              <div className="flex items-center justify-between font-semibold">
+              <div className="flex items-center justify-between pt-1 text-base font-semibold">
                 <span className="flex items-center gap-2">
                   <ReceiptIcon className="size-4 text-muted-foreground" />
                   {t("total")}
                 </span>
-                <span className="text-lg tabular-nums whitespace-nowrap">
+                <span className="tabular-nums whitespace-nowrap">
                   {formatMoney(orderTotal, store.currency)}
                 </span>
               </div>
@@ -531,14 +569,20 @@ export function CartDrawer({ store, showFab = true }: CartDrawerProps) {
         </ModalBody>
         {items.length > 0 && (
           <ModalFooter className="border-0 px-4 sm:px-5">
-            <div className="mx-auto w-full max-w-sm">
+            <div className="w-full">
               <Button
-                className="w-full gap-2"
+                className="w-full gap-2 rounded-xl py-3 text-base"
+                size="lg"
                 disabled={!customerName || !phoneValid || createOrder.isPending}
                 onClick={handleCheckout}
               >
               {createOrder.isPending ? (
                 t("processing")
+              ) : payOnline && canPayOnline ? (
+                <>
+                  <CreditCardIcon className="size-4" />
+                  {t("payAndOrder")}
+                </>
               ) : isWhatsAppMode ? (
                 <>
                   <MessageCircleIcon className="size-4" />

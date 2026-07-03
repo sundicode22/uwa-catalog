@@ -78,12 +78,12 @@ export function StorefrontHeader({ store }: { store: StoreWithCategories }) {
             <button
               type="button"
               aria-label={tCart("openCart")}
-              className="relative flex size-10 items-center justify-center border border-foreground/20 bg-white transition-colors hover:border-foreground"
+              className="relative flex size-10 items-center justify-center rounded-full border border-foreground/20 bg-white transition-colors hover:border-foreground"
               onClick={() => setCartOpen(true)}
             >
               <ShoppingBagIcon className="size-4" />
               {itemCount > 0 ? (
-                <span className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center bg-foreground text-[10px] text-background">
+                <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-foreground text-[10px] font-semibold text-background">
                   {itemCount}
                 </span>
               ) : null}
