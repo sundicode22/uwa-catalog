@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { DASHBOARD_CARD_CLASS } from "@/lib/dashboard-ui"
 import { cn } from "@/lib/utils"
 
 export function StatCard({
@@ -19,14 +20,14 @@ export function StatCard({
   className?: string
 }) {
   return (
-    <Card className={cn("shadow-none", className)}>
+    <Card className={cn(DASHBOARD_CARD_CLASS, className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {label}
           </CardTitle>
           {Icon ? (
-            <div className="rounded-lg bg-muted p-2">
+            <div className="rounded-lg bg-[#F9FAFB] p-2">
               <Icon className="size-4 text-muted-foreground" />
             </div>
           ) : null}

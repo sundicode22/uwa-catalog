@@ -36,7 +36,7 @@ function UsageBar({
     limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0
 
   return (
-    <div className="space-y-2 rounded-xl border border-border/60 bg-background/80 p-4">
+    <div className="space-y-2 rounded-xl border border-black/5 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="font-medium">{label}</span>
         <span
@@ -90,12 +90,12 @@ function PlanCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col rounded-2xl border bg-card p-6 transition-all",
+        "relative flex flex-col rounded-2xl border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-all",
         isCurrent
-          ? "border-primary/50 shadow-md ring-1 ring-primary/20"
+          ? "border-primary/40 ring-1 ring-primary/15"
           : isPopular
-            ? "border-primary/30 shadow-sm hover:-translate-y-0.5 hover:shadow-md"
-            : "border-border hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-sm"
+            ? "hover:-translate-y-0.5 hover:shadow-md"
+            : "hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
       )}
     >
       {isPopular && !isCurrent ? (
@@ -257,7 +257,7 @@ export default function BillingPage() {
         </p>
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-border bg-brand-gradient-hero p-6 sm:p-8">
+      <section className="overflow-hidden rounded-2xl border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04)] sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <p className="text-sm font-medium text-primary">Current plan</p>

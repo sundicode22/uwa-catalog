@@ -25,9 +25,11 @@ export default async function DashboardLayout({
       <StoreProvider>
         <SidebarProvider defaultOpen={false}>
           <AppSidebar />
-          <SidebarInset className="bg-gray-50">
+          <SidebarInset className="bg-[#F9FAFB]">
             <DashboardHeader />
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-4">{children}</div>
+            <div className="flex flex-1 flex-col gap-5 p-4 pt-5 sm:p-6">
+              {children}
+            </div>
           </SidebarInset>
         </SidebarProvider>
       </StoreProvider>

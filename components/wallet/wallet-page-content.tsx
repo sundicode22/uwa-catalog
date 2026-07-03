@@ -109,7 +109,7 @@ export function WalletPageContent() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="shadow-none md:col-span-2">
+        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] md:col-span-2">
           <CardHeader>
             <CardTitle>{t("availableBalance")}</CardTitle>
             <CardDescription>
@@ -135,7 +135,7 @@ export function WalletPageContent() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-none">
+        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
           <CardHeader>
             <CardTitle>{t("requestWithdrawal")}</CardTitle>
             <CardDescription>{t("withdrawalDescription")}</CardDescription>
@@ -194,7 +194,7 @@ export function WalletPageContent() {
         </Card>
       </div>
 
-      <Card className="shadow-none">
+      <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
         <CardHeader>
           <CardTitle>{t("ledgerTitle")}</CardTitle>
           <CardDescription>{t("ledgerDescription")}</CardDescription>
@@ -255,7 +255,7 @@ export function WalletPageContent() {
         </CardContent>
       </Card>
 
-      <Card className="shadow-none">
+      <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
         <CardHeader>
           <CardTitle>{t("withdrawalsTitle")}</CardTitle>
         </CardHeader>

@@ -43,7 +43,7 @@ export default function AdminStoresPage() {
       {isLoading ? (
         <Skeleton className="h-64 w-full rounded-xl" />
       ) : (
-        <div className="rounded-xl border border-border bg-background">
+        <div className="rounded-xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
           <Table>
             <TableHeader>
               <TableRow>

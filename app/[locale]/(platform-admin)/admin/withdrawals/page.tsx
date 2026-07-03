@@ -46,7 +46,7 @@ export default function AdminWithdrawalsPage() {
       ) : rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("noData")}</p>
       ) : (
-        <div className="rounded-xl border border-border bg-background">
+        <div className="rounded-xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
           <Table>
             <TableHeader>
               <TableRow>

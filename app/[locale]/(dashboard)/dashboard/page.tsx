@@ -76,7 +76,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/dashboard/wallet"
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-3 py-2 text-sm font-medium text-foreground shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-colors hover:bg-[#F9FAFB]"
         >
           <WalletIcon className="size-4 text-primary" />
           Wallet

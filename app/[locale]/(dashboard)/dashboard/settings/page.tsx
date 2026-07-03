@@ -139,7 +139,7 @@ export default function SettingsPage() {
           })}
           className="space-y-6"
         >
-          <Card className="shadow-none">
+          <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <CardHeader>
               <CardTitle>Store Information</CardTitle>
               <CardDescription>Basic details about your store</CardDescription>
@@ -244,7 +244,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-none">
+          <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <CardHeader>
               <CardTitle>Branding</CardTitle>
               <CardDescription>Logo and cover image for your catalog</CardDescription>
@@ -288,7 +288,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-none">
+          <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <CardHeader>
               <CardTitle>Ordering</CardTitle>
               <CardDescription>How customers place orders</CardDescription>
@@ -342,7 +342,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-none">
+          <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <CardHeader>
               <CardTitle>Delivery & pickup</CardTitle>
               <CardDescription>How customers receive orders</CardDescription>
@@ -399,7 +399,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-none">
+          <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <CardHeader>
               <CardTitle>Notifications & inventory</CardTitle>
             </CardHeader>
@@ -436,7 +436,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-none">
+          <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <CardHeader>
               <CardTitle>Online payments</CardTitle>
               <CardDescription>
@@ -472,7 +472,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-none">
+          <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
             <CardHeader>
               <CardTitle>Catalog Layout</CardTitle>
               <CardDescription>Default product display for your catalog</CardDescription>

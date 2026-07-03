@@ -36,7 +36,7 @@ export function ShareStoreCard({ store }: { store: Store }) {
   const qrPreviewUrl = getQrImageUrl(storeUrl, 220)
 
   return (
-    <Card className="shadow-none">
+    <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
       <CardHeader>
         <CardTitle>Share your store</CardTitle>
         <CardDescription>

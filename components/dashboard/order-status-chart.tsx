@@ -27,7 +27,7 @@ export function OrderStatusChart({ data, isLoading }: OrderStatusChartProps) {
   const hasData = data.some((point) => point.count > 0)
 
   return (
-    <Card className="shadow-none">
+    <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">Order status</CardTitle>
       </CardHeader>

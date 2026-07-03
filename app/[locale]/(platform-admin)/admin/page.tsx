@@ -59,7 +59,7 @@ export default function AdminOverviewPage() {
       </div>
 
       {data.ordersTrend.length > 0 ? (
-        <div className="rounded-xl border border-border bg-background p-4">
+        <div className="rounded-xl border border-black/5 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
           <h2 className="mb-3 text-sm font-medium">Orders trend (7d)</h2>
           <div className="flex items-end gap-2">
             {data.ordersTrend.map((point) => (
