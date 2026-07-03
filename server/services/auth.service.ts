@@ -4,6 +4,7 @@ import { and, eq, gt } from "drizzle-orm"
 import { db, users, verificationTokens } from "@/lib/db"
 import { AppError } from "@/server/elysia/plugins/errors"
 import { subscriptionService } from "@/server/services/subscription.service"
+import { walletService } from "@/server/services/wallet.service"
 import type {
   ForgotPasswordInput,
   RegisterInput,
@@ -40,6 +41,7 @@ export const authService = {
       .returning()
 
     await subscriptionService.ensureForUser(user.id)
+    await walletService.ensureForUser(user.id)
 
     return { id: user.id, email: user.email }
   },

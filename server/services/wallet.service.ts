@@ -74,7 +74,55 @@ export const walletService = {
     return created
   },
 
+  async resolveCurrenciesForUser(userId: string) {
+    const { stores } = await import("@/lib/db")
+    const userStores = await db
+      .select({ currency: stores.currency })
+      .from(stores)
+      .where(eq(stores.ownerId, userId))
+
+    const currencies = [
+      ...new Set(
+        userStores
+          .map((store) => store.currency?.trim().toUpperCase())
+          .filter(Boolean)
+      ),
+    ] as string[]
+
+    return currencies.length > 0 ? currencies : ["XAF"]
+  },
+
+  async ensureForUser(userId: string) {
+    const currencies = await this.resolveCurrenciesForUser(userId)
+    const accounts = await Promise.all(
+      currencies.map((currency) => this.getOrCreateAccount(userId, currency))
+    )
+    return accounts
+  },
+
+  async ensureForAllUsers() {
+    const { users } = await import("@/lib/db")
+    const allUsers = await db.select({ id: users.id }).from(users)
+    let created = 0
+
+    for (const user of allUsers) {
+      const before = await db
+        .select({ id: walletAccounts.id })
+        .from(walletAccounts)
+        .where(eq(walletAccounts.userId, user.id))
+
+      const accounts = await this.ensureForUser(user.id)
+      if (accounts.length > before.length) {
+        created += accounts.length - before.length
+      }
+    }
+
+    return { users: allUsers.length, walletsCreated: created }
+  },
+
   async getSummary(userId: string) {
+    await this.ensureForUser(userId)
+
     const accounts = await db
       .select()
       .from(walletAccounts)
