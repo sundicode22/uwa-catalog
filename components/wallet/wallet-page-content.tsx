@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { WalletIcon } from "lucide-react"
+import { ArrowUpRightIcon, WalletIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +24,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalForm,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/modal"
 import {
   useCreateWithdrawal,
   useWalletLedger,
@@ -64,6 +72,7 @@ export function WalletPageContent() {
     useWithdrawals(withdrawalsPage)
   const createWithdrawal = useCreateWithdrawal()
 
+  const [withdrawOpen, setWithdrawOpen] = useState(false)
   const [amount, setAmount] = useState("")
   const [currency, setCurrency] = useState("XAF")
   const [accountName, setAccountName] = useState("")
@@ -96,6 +105,10 @@ export function WalletPageContent() {
       },
     })
     setAmount("")
+    setAccountName("")
+    setPhone("")
+    setOperator("mtn")
+    setWithdrawOpen(false)
   }
 
   return (
@@ -108,91 +121,113 @@ export function WalletPageContent() {
         <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] md:col-span-2">
-          <CardHeader>
-            <CardTitle>{t("availableBalance")}</CardTitle>
-            <CardDescription>
-              {t("feeNotice", { percent: summary?.platformFeePercent ?? 0 })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {primaryAccount ? (
-              <p className="text-3xl font-semibold tabular-nums">
-                {formatMoney(
-                  primaryAccount.availableBalanceFormatted,
-                  primaryAccount.currency
-                )}
-              </p>
-            ) : (
-              <p className="text-3xl font-semibold tabular-nums">{formatMoney(0, currency)}</p>
-            )}
-            {summary?.pendingWithdrawalsCount ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t("pendingWithdrawals", { count: summary.pendingWithdrawalsCount })}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
+      <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>{t("availableBalance")}</CardTitle>
+              <CardDescription>
+                {t("feeNotice", { percent: summary?.platformFeePercent ?? 0 })}
+              </CardDescription>
+            </div>
+            <Button
+              className="gap-2"
+              onClick={() => setWithdrawOpen(true)}
+            >
+              <ArrowUpRightIcon className="size-4" />
+              {t("requestWithdrawal")}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {primaryAccount ? (
+            <p className="text-3xl font-semibold tabular-nums">
+              {formatMoney(
+                primaryAccount.availableBalanceFormatted,
+                primaryAccount.currency
+              )}
+            </p>
+          ) : (
+            <p className="text-3xl font-semibold tabular-nums">{formatMoney(0, currency)}</p>
+          )}
+          {summary?.pendingWithdrawalsCount ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("pendingWithdrawals", { count: summary.pendingWithdrawalsCount })}
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
 
-        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-          <CardHeader>
-            <CardTitle>{t("requestWithdrawal")}</CardTitle>
-            <CardDescription>{t("withdrawalDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleWithdraw} className="space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="amount">{t("amount")}</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="accountName">{t("accountName")}</Label>
-                <Input
-                  id="accountName"
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="phone">{t("phone")}</Label>
-                <Input
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("operator")}</Label>
-                <Select value={operator} onValueChange={setOperator}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mtn">MTN Mobile Money</SelectItem>
-                    <SelectItem value="orange">Orange Money</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={createWithdrawal.isPending || !amount}
-              >
-                {createWithdrawal.isPending ? t("submitting") : t("submitWithdrawal")}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+      <Modal
+        open={withdrawOpen}
+        onOpenChange={setWithdrawOpen}
+        mobileFullscreen
+      >
+        <ModalHeader onClose={() => setWithdrawOpen(false)}>
+          <ModalTitle>{t("requestWithdrawal")}</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+          <ModalForm>
+            <p className="text-sm text-muted-foreground">
+              {t("withdrawalDescription")}
+            </p>
+            <div className="space-y-1">
+              <Label htmlFor="wd-amount">{t("amount")}</Label>
+              <Input
+                id="wd-amount"
+                type="number"
+                min="0"
+                step="any"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="wd-accountName">{t("accountName")}</Label>
+              <Input
+                id="wd-accountName"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="wd-phone">{t("phone")}</Label>
+              <Input
+                id="wd-phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>{t("operator")}</Label>
+              <Select value={operator} onValueChange={setOperator}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mtn">MTN Mobile Money</SelectItem>
+                  <SelectItem value="orange">Orange Money</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </ModalForm>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="outline"
+            onClick={() => setWithdrawOpen(false)}
+          >
+            {t("cancel") ?? "Cancel"}
+          </Button>
+          <Button
+            disabled={createWithdrawal.isPending || !amount}
+            onClick={handleWithdraw}
+          >
+            {createWithdrawal.isPending ? t("submitting") : t("submitWithdrawal")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
         <CardHeader>

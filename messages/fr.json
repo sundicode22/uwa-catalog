@@ -397,7 +397,8 @@
     "next": "Suivant",
     "withdrawalsTitle": "Historique des retraits",
     "noWithdrawals": "Aucune demande de retrait.",
-    "status": "Statut"
+    "status": "Statut",
+    "cancel": "Annuler"
   },
   "admin": {
     "title": "Administration",

@@ -397,7 +397,8 @@
     "next": "Next",
     "withdrawalsTitle": "Withdrawal history",
     "noWithdrawals": "No withdrawal requests yet.",
-    "status": "Status"
+    "status": "Status",
+    "cancel": "Cancel"
   },
   "admin": {
     "title": "System admin",
