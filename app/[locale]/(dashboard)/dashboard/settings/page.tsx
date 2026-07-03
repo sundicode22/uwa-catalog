@@ -448,7 +448,7 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Online payments</CardTitle>
               <CardDescription>
-                Accept NotchPay (Mobile Money) on managed checkout orders.
+                Payments are processed by the platform. Order earnings are credited to your wallet after a platform fee.
               </CardDescription>
             </CardHeader>
             <CardContent>

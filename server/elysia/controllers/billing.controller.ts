@@ -4,12 +4,13 @@ import { stripeBillingService } from "@/server/services/billing/stripe.service"
 import { notchpayBillingService } from "@/server/services/billing/notchpay.service"
 import { planService } from "@/server/services/billing/plan.service"
 import { isPlatformAdmin } from "@/lib/billing/platform-admin"
-import { forbidden, notFound } from "@/server/elysia/plugins/errors"
+import { requirePlatformAdmin } from "@/server/elysia/plugins/platform-admin"
+import { notFound } from "@/server/elysia/plugins/errors"
 import type { SubscriptionPlan } from "@/lib/billing/plans"
 import type { PlanDefinition } from "@/lib/billing/plans"
 
-function requirePlatformAdmin(email: string | null | undefined) {
-  if (!isPlatformAdmin(email)) forbidden("Platform admin access required")
+function requirePlatformAdminEmail(email: string | null | undefined) {
+  requirePlatformAdmin(email)
 }
 
 export const billingController = {
@@ -27,7 +28,7 @@ export const billingController = {
   },
 
   async getAdminPlans(userEmail: string | null | undefined) {
-    requirePlatformAdmin(userEmail)
+    requirePlatformAdminEmail(userEmail)
     const plans = await planService.getAllPlansForAdmin()
     return success({ plans })
   },
@@ -51,7 +52,7 @@ export const billingController = {
       >
     >
   ) {
-    requirePlatformAdmin(userEmail)
+    requirePlatformAdminEmail(userEmail)
     const updated = await planService.updatePlan(planId, input)
     if (!updated) notFound("Plan not found")
     return success({ plan: updated })

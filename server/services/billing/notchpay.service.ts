@@ -718,8 +718,25 @@ export const notchpayBillingService = {
 
     const merchantRef = isMerchantReference(reference)
       ? reference
-      : await lookupMerchantReference(reference)
+      : reference.startsWith("order_")
+        ? reference
+        : await lookupMerchantReference(reference)
     if (!merchantRef) {
+      return { received: true }
+    }
+
+    if (merchantRef.startsWith("order_")) {
+      const { storeCheckoutService } = await import(
+        "@/server/services/store-checkout.service"
+      )
+      if (
+        event.type === "payment.complete" ||
+        event.type === "payment.failed"
+      ) {
+        if (event.type === "payment.complete") {
+          await storeCheckoutService.settleFromReference(merchantRef, event.data as Record<string, unknown>)
+        }
+      }
       return { received: true }
     }
 

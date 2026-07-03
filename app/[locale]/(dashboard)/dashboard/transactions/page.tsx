@@ -34,7 +34,12 @@ export default function TransactionsPage() {
       <div>
         <h1 className="text-lg font-semibold">Transactions</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Sales recorded from catalog and WhatsApp orders for {store.name}
+          Sales recorded from catalog and WhatsApp orders for {store.name}. Paid
+          checkout orders credit your{" "}
+          <a href="/dashboard/wallet" className="text-primary underline-offset-4 hover:underline">
+            wallet
+          </a>
+          .
         </p>
       </div>
 

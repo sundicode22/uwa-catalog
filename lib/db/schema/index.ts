@@ -70,6 +70,21 @@ export const paymentProviderEnum = pgEnum("payment_provider", [
   "razorpay",
   "mercado_pago",
 ])
+export const walletLedgerTypeEnum = pgEnum("wallet_ledger_type", [
+  "order_credit",
+  "platform_fee",
+  "withdrawal_debit",
+  "withdrawal_refund",
+  "adjustment",
+])
+export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "processing",
+  "paid",
+  "failed",
+])
 
 export const users = pgTable("users", {
   id: text("id")
@@ -609,5 +624,119 @@ export const paymentProviderConfigs = pgTable(
       table.provider
     ),
     index("payment_provider_store_idx").on(table.storeId),
+  ]
+)
+
+export const walletAccounts = pgTable(
+  "wallet_accounts",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    currency: text("currency").notNull(),
+    availableBalance: integer("available_balance").default(0).notNull(),
+    pendingBalance: integer("pending_balance").default(0).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("wallet_accounts_user_currency_idx").on(table.userId, table.currency),
+    index("wallet_accounts_user_idx").on(table.userId),
+  ]
+)
+
+export const walletLedgerEntries = pgTable(
+  "wallet_ledger_entries",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    walletId: text("wallet_id")
+      .notNull()
+      .references(() => walletAccounts.id, { onDelete: "cascade" }),
+    type: walletLedgerTypeEnum("type").notNull(),
+    amount: integer("amount").notNull(),
+    currency: text("currency").notNull(),
+    balanceAfter: integer("balance_after").notNull(),
+    referenceType: text("reference_type"),
+    referenceId: text("reference_id"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("wallet_ledger_wallet_created_idx").on(table.walletId, table.createdAt),
+    uniqueIndex("wallet_ledger_reference_idx").on(
+      table.referenceType,
+      table.referenceId,
+      table.type
+    ),
+  ]
+)
+
+export const withdrawalRequests = pgTable(
+  "withdrawal_requests",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    walletId: text("wallet_id")
+      .notNull()
+      .references(() => walletAccounts.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    currency: text("currency").notNull(),
+    status: withdrawalStatusEnum("status").default("pending").notNull(),
+    payoutMethod: text("payout_method").notNull(),
+    payoutDetails: jsonb("payout_details")
+      .$type<{
+        accountName?: string
+        phone?: string
+        operator?: string
+        notes?: string
+      }>()
+      .default({})
+      .notNull(),
+    adminNote: text("admin_note"),
+    reviewedBy: text("reviewed_by"),
+    reviewedAt: timestamp("reviewed_at", { mode: "date" }),
+    paidAt: timestamp("paid_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("withdrawal_requests_status_created_idx").on(table.status, table.createdAt),
+    index("withdrawal_requests_user_idx").on(table.userId),
+  ]
+)
+
+export const platformSettings = pgTable("platform_settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").$type<Record<string, unknown>>().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+})
+
+export const catalogPageViews = pgTable(
+  "catalog_page_views",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    path: text("path").notNull(),
+    visitorId: text("visitor_id").notNull(),
+    referrer: text("referrer"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("catalog_page_views_store_created_idx").on(table.storeId, table.createdAt),
+    index("catalog_page_views_visitor_idx").on(table.visitorId),
   ]
 )

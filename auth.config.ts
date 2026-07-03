@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth"
+import { hasPlatformAdminRole } from "@/lib/auth/platform-admin-role"
 import { stripLocalePrefix } from "@/lib/i18n/pathname"
 
 export const authConfig = {
@@ -18,8 +19,14 @@ export const authConfig = {
         path.startsWith("/reset-password") ||
         path.startsWith("/auth/error")
       const isDashboard = path.startsWith("/dashboard")
+      const isAdmin = path.startsWith("/admin")
 
-      if (isDashboard && !isLoggedIn) return false
+      if ((isDashboard || isAdmin) && !isLoggedIn) return false
+
+      if (isAdmin && isLoggedIn && !hasPlatformAdminRole(auth.user?.email)) {
+        return Response.redirect(new URL("/dashboard", nextUrl))
+      }
+
       if (isAuthPage && isLoggedIn) {
         return Response.redirect(new URL("/dashboard", nextUrl))
       }
@@ -29,11 +36,21 @@ export const authConfig = {
       if (user) {
         token.id = user.id
       }
+      if (token.email) {
+        token.role = hasPlatformAdminRole(token.email as string)
+          ? "platform_admin"
+          : "merchant"
+      }
       return token
     },
     session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id as string
+      }
+      if (session.user) {
+        session.user.role =
+          token.role === "platform_admin" ? "platform_admin" : "merchant"
+        session.user.isPlatformAdmin = token.role === "platform_admin"
       }
       return session
     },

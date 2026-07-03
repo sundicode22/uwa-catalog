@@ -1,4 +1,5 @@
 import { NextIntlClientProvider } from "next-intl"
+import { PageviewBeacon } from "@/components/catalog/pageview-beacon"
 import { resolveLocale } from "@/lib/i18n/resolve-locale"
 import { Providers } from "../providers"
 
@@ -12,7 +13,10 @@ export default async function CatalogLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <Providers>{children}</Providers>
+      <Providers>
+        <PageviewBeacon />
+        {children}
+      </Providers>
     </NextIntlClientProvider>
   )
 }

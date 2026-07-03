@@ -539,3 +539,134 @@ export interface NotchPayVerifyResult {
   plan: AccountSubscriptionPlan
   authorizationUrl?: string | null
 }
+
+export type WalletLedgerType =
+  | "order_credit"
+  | "platform_fee"
+  | "withdrawal_debit"
+  | "withdrawal_refund"
+  | "adjustment"
+
+export type WithdrawalStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "processing"
+  | "paid"
+  | "failed"
+
+export interface WalletAccount {
+  id: string
+  userId: string
+  currency: string
+  availableBalance: number
+  pendingBalance: number
+  availableBalanceFormatted: string
+  pendingBalanceFormatted: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WalletLedgerEntry {
+  id: string
+  walletId: string
+  type: WalletLedgerType
+  amount: number
+  currency: string
+  amountFormatted: string
+  balanceAfter: number
+  balanceAfterFormatted: string
+  referenceType: string | null
+  referenceId: string | null
+  metadata: Record<string, unknown> | null
+  createdAt: string
+}
+
+export interface WalletSummary {
+  accounts: WalletAccount[]
+  pendingWithdrawalsCount: number
+  platformFeePercent: number
+  recentLedger: WalletLedgerEntry[]
+}
+
+export interface WithdrawalRequest {
+  id: string
+  userId: string
+  walletId: string
+  amount: number
+  currency: string
+  amountFormatted: string
+  status: WithdrawalStatus
+  payoutMethod: string
+  payoutDetails: {
+    accountName?: string
+    phone?: string
+    operator?: string
+    notes?: string
+  }
+  adminNote: string | null
+  reviewedBy: string | null
+  reviewedAt: string | null
+  paidAt: string | null
+  createdAt: string
+  updatedAt: string
+  userEmail?: string | null
+  userName?: string | null
+}
+
+export interface PlatformSettings {
+  platformFeePercent: number
+  minWithdrawalAmount: number
+}
+
+export interface AdminOverview {
+  users: number
+  stores: number
+  publishedStores: number
+  orders7d: number
+  orders30d: number
+  gmv30d: number
+  pendingWithdrawals: number
+  walletLiabilitiesMinor: number
+  pageViews7d: number
+  uniqueVisitors7d: number
+  ordersTrend: { day: string; count: number }[]
+}
+
+export interface VisitorMetrics {
+  days: number
+  pageViews: number
+  uniqueVisitors: number
+  topStores: {
+    storeId: string
+    storeName: string
+    storeSlug: string
+    views: number
+  }[]
+  topPages: {
+    storeId: string
+    path: string
+    views: number
+  }[]
+}
+
+export interface AdminUserRow {
+  id: string
+  name: string | null
+  email: string
+  createdAt: string
+  storeCount: number
+}
+
+export interface AdminStoreRow {
+  id: string
+  name: string
+  slug: string
+  isPublished: boolean
+  currency: string
+  ownerEmail: string
+  ownerName: string | null
+  orderCount: number
+  visitorCount7d: number
+  createdAt: string
+}

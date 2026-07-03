@@ -14,6 +14,8 @@ import {
   StoreIcon,
   CreditCardIcon,
   QrCodeIcon,
+  ShieldIcon,
+  WalletIcon,
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -29,6 +31,7 @@ import {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
   const t = useTranslations("nav")
+  const isPlatformAdmin = session?.user?.isPlatformAdmin === true
 
   const navItems = [
     {
@@ -74,6 +77,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
+      title: t("wallet"),
+      url: "/dashboard/wallet",
+      icon: <WalletIcon />,
+      items: [],
+    },
+    {
       title: t("share"),
       url: "/dashboard/share",
       icon: <QrCodeIcon />,
@@ -91,6 +100,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: <SettingsIcon />,
       items: [],
     },
+    ...(isPlatformAdmin
+      ? [
+          {
+            title: "System admin",
+            url: "/admin",
+            icon: <ShieldIcon />,
+            items: [],
+          },
+        ]
+      : []),
   ]
 
   return (

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm"
 import { db, orders, stores } from "@/lib/db"
 import { AppError } from "@/server/elysia/plugins/errors"
+import { paymentSettlementService } from "@/server/services/payment-settlement.service"
 
 const DEFAULT_NOTCHPAY_API_URL = "https://api.notchpay.co"
 
@@ -55,6 +56,27 @@ function extractCheckoutUrl(payload: Record<string, unknown>) {
   )
 }
 
+function isSuccessfulPaymentStatus(status: string) {
+  return ["complete", "completed", "success", "successful", "paid"].includes(
+    status.toLowerCase()
+  )
+}
+
+function parseOrderIdFromReference(reference: string) {
+  if (!isOrderReference(reference)) return null
+  return reference.split("_")[1] ?? null
+}
+
+async function redirectForOrder(orderId: string, paid: boolean) {
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId))
+  if (!order?.trackingToken) return `${appUrl()}/checkout/failed`
+
+  const [store] = await db.select().from(stores).where(eq(stores.id, order.storeId))
+  if (!store) return `${appUrl()}/checkout/failed`
+
+  return `${appUrl()}/c/${store.slug}/orders/${order.trackingToken}?paid=${paid ? 1 : 0}`
+}
+
 export const storeCheckoutService = {
   async createPayment(input: {
     orderId: string
@@ -104,6 +126,16 @@ export const storeCheckoutService = {
     return { reference, checkoutUrl }
   },
 
+  async settleFromReference(reference: string, providerPayload?: Record<string, unknown>) {
+    const orderId = parseOrderIdFromReference(reference)
+    if (!orderId) return null
+    return paymentSettlementService.settleOrderPayment({
+      orderId,
+      reference,
+      providerPayload,
+    })
+  },
+
   async handleCallback(search: string) {
     const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`)
     const refs = params.getAll("reference").filter(Boolean)
@@ -117,7 +149,7 @@ export const storeCheckoutService = {
       return `${appUrl()}/checkout/failed`
     }
 
-    const orderId = merchantRef.split("_")[1]
+    const orderId = parseOrderIdFromReference(merchantRef)
     if (!orderId) return `${appUrl()}/checkout/failed`
 
     const payment = await notchpayFetch(
@@ -130,39 +162,15 @@ export const storeCheckoutService = {
       (payment.data as Record<string, unknown> | undefined)
     const status = String(transaction?.status ?? params.get("status") ?? "").toLowerCase()
 
-    if (["complete", "completed", "success", "successful", "paid"].includes(status)) {
-      const [order] = await db
-        .update(orders)
-        .set({
-          paymentStatus: "paid",
-          status: "confirmed",
-          updatedAt: new Date(),
-        })
-        .where(eq(orders.id, orderId))
-        .returning()
-
-      if (order) {
-        const [store] = await db
-          .select()
-          .from(stores)
-          .where(eq(stores.id, order.storeId))
-        if (store) {
-          return `${appUrl()}/c/${store.slug}/orders/${order.trackingToken}?paid=1`
-        }
-      }
+    if (isSuccessfulPaymentStatus(status)) {
+      await paymentSettlementService.settleOrderPayment({
+        orderId,
+        reference: merchantRef,
+        providerPayload: payment,
+      })
+      return await redirectForOrder(orderId, true)
     }
 
-    const [order] = await db.select().from(orders).where(eq(orders.id, orderId))
-    if (order?.trackingToken) {
-      const [store] = await db
-        .select()
-        .from(stores)
-        .where(eq(stores.id, order.storeId))
-      if (store) {
-        return `${appUrl()}/c/${store.slug}/orders/${order.trackingToken}?paid=0`
-      }
-    }
-
-    return `${appUrl()}/checkout/failed`
+    return await redirectForOrder(orderId, false)
   },
 }

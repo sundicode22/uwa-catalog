@@ -38,8 +38,17 @@ import type {
   NotchPayVerifyResult,
   AccountSubscriptionPlan,
   PlanDefinition,
+  WalletSummary,
+  WalletLedgerEntry,
+  WithdrawalRequest,
+  WithdrawalStatus,
+  AdminOverview,
+  VisitorMetrics,
+  AdminUserRow,
+  AdminStoreRow,
+  PlatformSettings,
 } from "./domain"
-import type { PaginationQuery, Paginated } from "./api"
+import type { PaginationQuery, Paginated, PaginationMeta } from "./api"
 
 export interface ApiEndpoints {
   "POST /auth/register": { body: RegisterInput; response: RegisterResult }
@@ -206,6 +215,69 @@ export interface ApiEndpoints {
   "POST /billing/notchpay/verify": {
     body: { reference: string; paymentReference?: string }
     response: NotchPayVerifyResult
+  }
+
+  "GET /wallet": { response: WalletSummary }
+  "GET /wallet/ledger": {
+    query?: { page?: number; limit?: number; currency?: string }
+    response: WalletLedgerEntry[]
+  }
+  "POST /wallet/withdrawals": {
+    body: {
+      amount: string
+      currency: string
+      payoutMethod: string
+      payoutDetails: {
+        accountName?: string
+        phone?: string
+        operator?: string
+        notes?: string
+      }
+    }
+    response: { withdrawal: WithdrawalRequest }
+  }
+  "GET /wallet/withdrawals": {
+    query?: { page?: number; limit?: number }
+    response: WithdrawalRequest[]
+  }
+
+  "GET /admin/overview": { response: AdminOverview }
+  "GET /admin/withdrawals": {
+    query?: { page?: number; limit?: number; status?: WithdrawalStatus; search?: string }
+    response: WithdrawalRequest[]
+  }
+  "PATCH /admin/withdrawals/:id": {
+    params: { id: string }
+    body: { action: "approve" | "reject" | "mark_paid"; note?: string }
+    response: { withdrawal: WithdrawalRequest }
+  }
+  "GET /admin/users": {
+    query?: { page?: number; limit?: number; search?: string }
+    response: AdminUserRow[]
+  }
+  "GET /admin/stores": {
+    query?: { page?: number; limit?: number; search?: string }
+    response: AdminStoreRow[]
+  }
+  "GET /admin/visitors": {
+    query?: { storeId?: string; days?: number }
+    response: VisitorMetrics
+  }
+  "GET /admin/settings": { response: { settings: PlatformSettings } }
+  "PATCH /admin/settings": {
+    body: { platformFeePercent?: number; minWithdrawalAmount?: number }
+    response: { settings: PlatformSettings }
+  }
+
+  "POST /analytics/pageview": {
+    body: {
+      storeSlug: string
+      path: string
+      visitorId: string
+      referrer?: string
+      userAgent?: string
+    }
+    response: { recorded: boolean }
   }
 }
 
