@@ -5,6 +5,7 @@ import { StatCard } from "@/components/dashboard/stat-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAdminOverview } from "@/hooks/use-admin"
 import { formatMoney } from "@/lib/format"
+import { fromMinorUnits } from "@/lib/wallet/money"
 
 export default function AdminOverviewPage() {
   const t = useTranslations("admin")
@@ -50,7 +51,10 @@ export default function AdminOverviewPage() {
         <StatCard label={t("gmv30d")} value={formatMoney(data.gmv30d, "USD")} />
         <StatCard
           label={t("walletLiabilities")}
-          value={String(data.walletLiabilitiesMinor)}
+          value={formatMoney(
+            fromMinorUnits(data.walletLiabilitiesMinor, "XAF"),
+            "XAF"
+          )}
         />
       </div>
 

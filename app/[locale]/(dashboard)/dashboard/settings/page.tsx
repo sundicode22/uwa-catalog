@@ -11,7 +11,6 @@ import { FormInput } from "@/components/ui/form-input"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -19,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Link } from "@/i18n/navigation"
 import {
   Form,
   FormControl,
@@ -60,14 +60,6 @@ const schema = z.object({
   notifyOnNewOrder: z.boolean(),
   storefrontPaymentsEnabled: z.boolean(),
 })
-
-const PAYMENT_PROVIDERS = [
-  { provider: "Stripe", region: "Global", description: "Cards, wallets, subscriptions" },
-  { provider: "Paystack", region: "Africa", description: "Cards, bank transfers, mobile money" },
-  { provider: "Flutterwave", region: "Africa", description: "Multi-currency payments" },
-  { provider: "Razorpay", region: "South Asia", description: "UPI, cards, netbanking" },
-  { provider: "Mercado Pago", region: "LATAM", description: "Local payment methods" },
-]
 
 export default function SettingsPage() {
   const { store } = useStore()
@@ -448,16 +440,29 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Online payments</CardTitle>
               <CardDescription>
-                Payments are processed by the platform. Order earnings are credited to your wallet after a platform fee.
+                Customers pay through the platform checkout. Successful payments are credited to your{" "}
+                <Link
+                  href="/dashboard/wallet"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  wallet
+                </Link>{" "}
+                after the platform fee. You do not need to connect Stripe, NotchPay, or any other provider.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="storefrontPaymentsEnabled"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <FormLabel>Enable storefront payments</FormLabel>
+                  <FormItem className="flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <FormLabel>Accept online payments</FormLabel>
+                      <FormDescription>
+                        When enabled, managed checkout orders require payment before confirmation.
+                        Earnings appear in your wallet automatically.
+                      </FormDescription>
+                    </div>
                     <FormControl>
                       <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
@@ -507,32 +512,6 @@ export default function SettingsPage() {
       </Form>
 
       <DiscountCodesCard store={store} />
-
-      <Card className="shadow-none opacity-60">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Payments
-            <Badge variant="secondary">Coming Soon</Badge>
-          </CardTitle>
-          <CardDescription>
-            Configure payment providers based on your region. Stores will be able to accept online payments when this feature launches.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {PAYMENT_PROVIDERS.map((p) => (
-            <div
-              key={p.provider}
-              className="flex items-center justify-between border border-border p-4"
-            >
-              <div>
-                <p className="font-medium">{p.provider}</p>
-                <p className="text-sm text-muted-foreground">{p.description}</p>
-              </div>
-              <Badge variant="outline">{p.region}</Badge>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   )
 }

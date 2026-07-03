@@ -6,17 +6,19 @@ import {
   CheckCircle2Icon,
   ClipboardListIcon,
   ClockIcon,
-  FolderTreeIcon,
   PackageCheckIcon,
   PackageIcon,
+  WalletIcon,
   XCircleIcon,
 } from "lucide-react"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { DashboardWelcome } from "@/components/dashboard/dashboard-welcome"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useStore, useStoreStats } from "@/hooks/use-store"
+import { useWalletSummary } from "@/hooks/use-wallet"
 import { formatMoney } from "@/lib/format"
 import { resolveStoreCurrency } from "@/lib/currency"
+import { Link } from "@/i18n/navigation"
 
 const OrdersTrendChart = dynamic(
   () =>
@@ -54,18 +56,31 @@ const OrderStatusChart = dynamic(
 export default function DashboardPage() {
   const { store, stores } = useStore()
   const { data: stats, isLoading } = useStoreStats(store?.id)
+  const { data: wallet, isLoading: walletLoading } = useWalletSummary()
 
   if (!store && stores.length === 0) {
     return <DashboardWelcome />
   }
 
   const currency = resolveStoreCurrency(store)
+  const primaryWallet = wallet?.accounts?.[0]
+  const walletCurrency = primaryWallet?.currency ?? currency
+  const walletBalance = primaryWallet?.availableBalanceFormatted ?? "0"
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">{store?.name}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-semibold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">{store?.name}</p>
+        </div>
+        <Link
+          href="/dashboard/wallet"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          <WalletIcon className="size-4 text-primary" />
+          Wallet
+        </Link>
       </div>
 
       {(stats?.lowStockProducts ?? 0) > 0 ? (
@@ -75,6 +90,17 @@ export default function DashboardPage() {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Wallet balance"
+          value={formatMoney(walletBalance, walletCurrency)}
+          hint={
+            wallet?.pendingWithdrawalsCount
+              ? `${wallet.pendingWithdrawalsCount} pending withdrawal(s)`
+              : "Order earnings after platform fee"
+          }
+          icon={WalletIcon}
+          isLoading={walletLoading}
+        />
         <StatCard
           label="Total revenue"
           value={formatMoney(stats?.totalRevenue ?? "0", currency)}
@@ -94,13 +120,6 @@ export default function DashboardPage() {
           value={stats?.activeProducts ?? 0}
           hint={`${stats?.totalProducts ?? 0} total`}
           icon={PackageIcon}
-          isLoading={isLoading}
-        />
-        <StatCard
-          label="Categories"
-          value={stats?.totalCategories ?? 0}
-          hint="Catalog organization"
-          icon={FolderTreeIcon}
           isLoading={isLoading}
         />
       </div>

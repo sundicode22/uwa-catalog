@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import {
   CheckIcon,
-  CreditCardIcon,
   LayersIcon,
   SmartphoneIcon,
   StoreIcon,
@@ -22,7 +21,6 @@ import {
 import { formatMoney } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { AccountSubscriptionPlan, PlanDefinition } from "@/types/domain"
-import { BillingPlanAdmin } from "@/components/dashboard/billing-plan-admin"
 
 function UsageBar({
   label,
@@ -165,7 +163,7 @@ function PlanCard({
             disabled={notchpayLoading}
           >
             <SmartphoneIcon className="size-4" />
-            {notchpayLoading ? "Redirecting..." : "Pay with NotchPay"}
+            {notchpayLoading ? "Redirecting..." : "Pay with mobile money"}
           </Button>
         </div>
       ) : null}
@@ -190,13 +188,13 @@ export default function BillingPage() {
     checkoutToastShown.current = toastKey
 
     if (checkout === "success") {
-      toast.success("NotchPay payment confirmed. Your plan is active.")
+      toast.success("Payment confirmed. Your plan is active.")
       queryClient.invalidateQueries({ queryKey: ["billing"] })
       return
     }
     if (checkout === "pending") {
       toast.message(
-        "Payment received. Your plan will update once NotchPay confirms the transaction."
+        "Payment received. Your plan will update once the transaction is confirmed."
       )
       queryClient.invalidateQueries({ queryKey: ["billing"] })
       return
@@ -228,7 +226,7 @@ export default function BillingPage() {
     return <p className="text-muted-foreground">Unable to load billing information.</p>
   }
 
-  const { subscription, usage, plans, limits, canManagePlans } = data
+  const { subscription, usage, plans, limits } = data
   const productCount = store ? (usage.productsByStore[store.id] ?? 0) : 0
   const renewalDate = subscription.currentPeriodEnd
     ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
@@ -244,7 +242,7 @@ export default function BillingPage() {
         return
       }
 
-      toast.error("Unable to start NotchPay checkout.")
+      toast.error("Unable to start checkout. Please try again.")
     } catch {
       // useApiMutation already shows the API error toast.
     }
@@ -255,7 +253,7 @@ export default function BillingPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage your subscription, usage limits, and payment methods
+          Manage your subscription and usage limits. Store order earnings are paid out from your wallet.
         </p>
       </div>
 
@@ -268,8 +266,8 @@ export default function BillingPage() {
               {renewalDate && subscription.provider !== "none"
                 ? `Renews ${renewalDate}`
                 : "No active paid subscription"}
-              {subscription.provider === "stripe" ? " · Stripe (unavailable)" : ""}
-              {subscription.provider === "notchpay" ? " · NotchPay" : ""}
+              {subscription.provider === "stripe" ? " · Card billing" : ""}
+              {subscription.provider === "notchpay" ? " · Mobile money" : ""}
             </p>
           </div>
         </div>
@@ -294,20 +292,10 @@ export default function BillingPage() {
               Upgrade when you need more stores, products, or premium layouts
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="secondary"
-              className="gap-1.5 opacity-50"
-              title="Coming soon"
-            >
-              <CreditCardIcon className="size-3.5" />
-              Stripe · Coming soon
-            </Badge>
-            <Badge variant="secondary" className="gap-1.5">
-              <SmartphoneIcon className="size-3.5" />
-              NotchPay
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="gap-1.5">
+            <SmartphoneIcon className="size-3.5" />
+            Mobile money
+          </Badge>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-3 lg:items-stretch">
@@ -324,8 +312,6 @@ export default function BillingPage() {
           ))}
         </div>
       </section>
-
-      {canManagePlans ? <BillingPlanAdmin /> : null}
     </div>
   )
 }

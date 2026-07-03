@@ -6,6 +6,7 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
 import { getTransactionColumns } from "@/components/data-table/columns/transaction-columns"
 import { useTransactions } from "@/hooks/use-transactions"
 import { useStore } from "@/hooks/use-store"
+import { Link } from "@/i18n/navigation"
 import type { StoreTransactionListItem } from "@/types/domain"
 
 export default function TransactionsPage() {
@@ -36,9 +37,12 @@ export default function TransactionsPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Sales recorded from catalog and WhatsApp orders for {store.name}. Paid
           checkout orders credit your{" "}
-          <a href="/dashboard/wallet" className="text-primary underline-offset-4 hover:underline">
+          <Link
+            href="/dashboard/wallet"
+            className="text-primary underline-offset-4 hover:underline"
+          >
             wallet
-          </a>
+          </Link>
           .
         </p>
       </div>
