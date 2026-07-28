@@ -118,10 +118,9 @@ export function WalletPageContent() {
           <WalletIcon className="size-5" />
           {t("title")}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
-      <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <Card className="border-0 bg-white shadow-none">
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -229,7 +228,7 @@ export function WalletPageContent() {
         </ModalFooter>
       </Modal>
 
-      <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <Card className="border-0 bg-white shadow-none">
         <CardHeader>
           <CardTitle>{t("ledgerTitle")}</CardTitle>
           <CardDescription>{t("ledgerDescription")}</CardDescription>
@@ -290,7 +289,7 @@ export function WalletPageContent() {
         </CardContent>
       </Card>
 
-      <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <Card className="border-0 bg-white shadow-none">
         <CardHeader>
           <CardTitle>{t("withdrawalsTitle")}</CardTitle>
         </CardHeader>

@@ -27,11 +27,10 @@ export default function AdminVisitorsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold">{t("visitors")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Last {data.days} days</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <Card className="border-0 bg-white shadow-none">
           <CardHeader>
             <CardTitle className="text-base">{t("pageViews7d")}</CardTitle>
           </CardHeader>
@@ -39,7 +38,7 @@ export default function AdminVisitorsPage() {
             <p className="text-3xl font-semibold tabular-nums">{data.pageViews}</p>
           </CardContent>
         </Card>
-        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <Card className="border-0 bg-white shadow-none">
           <CardHeader>
             <CardTitle className="text-base">{t("uniqueVisitors7d")}</CardTitle>
           </CardHeader>
@@ -50,7 +49,7 @@ export default function AdminVisitorsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <Card className="border-0 bg-white shadow-none">
           <CardHeader>
             <CardTitle className="text-base">{t("topStores")}</CardTitle>
           </CardHeader>
@@ -78,7 +77,7 @@ export default function AdminVisitorsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <Card className="border-0 bg-white shadow-none">
           <CardHeader>
             <CardTitle className="text-base">{t("topPages")}</CardTitle>
           </CardHeader>

@@ -15,8 +15,22 @@ export function getCustomerColumns(actions: {
 
   return [
     createSelectColumn<StoreCustomer>(),
-    { accessorKey: "name", header: "Name" },
-    { accessorKey: "phone", header: "Phone" },
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+    },
+    {
+      accessorKey: "phone",
+      header: "Phone",
+      cell: ({ row }) => (
+        <span className="tabular-nums text-muted-foreground">
+          {row.original.phone || "—"}
+        </span>
+      ),
+    },
     {
       accessorKey: "email",
       header: "Email",

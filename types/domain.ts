@@ -135,6 +135,8 @@ export interface Product {
   isFeatured: boolean
   inventory: number | null
   sortOrder: number
+  /** True when owner's plan limit is exceeded (blurred / non-interactive on storefront). */
+  locked?: boolean
   createdAt: string
   updatedAt: string
   category?: Category | null

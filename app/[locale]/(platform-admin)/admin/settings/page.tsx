@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
         <h1 className="text-lg font-semibold">{t("settings")}</h1>
       </div>
 
-      <Card className="max-w-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <Card className="max-w-lg border-0 bg-white shadow-none">
         <CardHeader>
           <CardTitle>Platform wallet settings</CardTitle>
           <CardDescription>

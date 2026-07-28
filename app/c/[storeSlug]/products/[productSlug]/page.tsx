@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { auth } from "@/auth"
+import { BlockedStorePage } from "@/components/catalog/blocked-store"
 import { CatalogShell } from "@/components/catalog/catalog-shell"
 import { ProductPageClient } from "@/components/catalog/product-page-client"
 import { StorePreviewBanner } from "@/components/catalog/store-preview-banner"
@@ -10,6 +11,10 @@ import { getStoreBySlug } from "@/lib/catalog/get-store-by-slug"
 import { resolveStoreCurrency } from "@/lib/currency"
 import { buildProductJsonLd } from "@/lib/seo/json-ld"
 import { buildProductMetadata } from "@/lib/seo/metadata"
+import {
+  getCatalogPlanAccess,
+  isProductLocked,
+} from "@/server/services/catalog-access.service"
 import { productOptionsService } from "@/server/services/product-options.service"
 import { db, products } from "@/lib/db"
 import { eq, and } from "drizzle-orm"
@@ -38,6 +43,9 @@ async function getProductPageData(storeSlug: string, productSlug: string) {
     modifierGroups: 0,
   }
 
+  const access = await getCatalogPlanAccess(store.id, store.ownerId)
+  const locked = isProductLocked(product.id, access)
+
   const serializedProduct: Product = {
     id: product.id,
     storeId: product.storeId,
@@ -53,6 +61,7 @@ async function getProductPageData(storeSlug: string, productSlug: string) {
     isFeatured: product.isFeatured,
     inventory: product.inventory,
     sortOrder: product.sortOrder,
+    locked,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
   }
@@ -61,6 +70,7 @@ async function getProductPageData(storeSlug: string, productSlug: string) {
     store,
     product: serializedProduct,
     category,
+    access,
   }
 }
 
@@ -97,17 +107,24 @@ export default async function ProductDetailPage({
   const data = await getProductPageData(storeSlug, productSlug)
   if (!data) notFound()
 
-  let isOwner = false
-  if (!data.store.isPublished) {
-    const session = await auth()
-    isOwner = session?.user?.id === data.store.ownerId
-  }
+  const session = await auth()
+  const isOwner = session?.user?.id === data.store.ownerId
 
   if (!data.store.isPublished && !isOwner) {
     return <UnpublishedStorePage storeName={data.store.name} />
   }
 
-  const isPremium = data.store.storefrontTier === "premium"
+  if (!data.access.storeAllowed && !isOwner) {
+    return <BlockedStorePage storeName={data.store.name} />
+  }
+
+  if (data.product.locked && !isOwner) {
+    notFound()
+  }
+
+  const isPremium =
+    data.store.storefrontTier === "premium" &&
+    data.access.canUsePremiumStorefront
   const currency = resolveStoreCurrency(data.store)
 
   return (

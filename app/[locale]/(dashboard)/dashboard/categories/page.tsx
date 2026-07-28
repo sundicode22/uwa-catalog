@@ -66,17 +66,18 @@ export default function CategoriesPage() {
         </Button>
       </div>
 
-      <DataTableToolbar
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search categories..."
-      />
-
       <DataTable
         columns={columns}
         data={filteredCategories}
         isLoading={isLoading}
         getRowId={(row) => row.id}
+        toolbar={
+          <DataTableToolbar
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search categories..."
+          />
+        }
       />
 
       <CategoryFormModal

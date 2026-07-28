@@ -36,7 +36,7 @@ function UsageBar({
     limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0
 
   return (
-    <div className="space-y-2 rounded-xl border border-black/5 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+    <div className="space-y-2 rounded-xl border-0 bg-white p-4 shadow-none">
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="font-medium">{label}</span>
         <span
@@ -90,7 +90,7 @@ function PlanCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col rounded-2xl border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-all",
+        "relative flex flex-col rounded-2xl border-0 bg-white p-6 shadow-none transition-all",
         isCurrent
           ? "border-primary/40 ring-1 ring-primary/15"
           : isPopular
@@ -252,12 +252,9 @@ export default function BillingPage() {
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your subscription and usage limits. Store order earnings are paid out from your wallet.
-        </p>
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(16,24,40,0.04)] sm:p-8">
+      <section className="overflow-hidden rounded-2xl border-0 bg-white p-6 shadow-none sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <p className="text-sm font-medium text-primary">Current plan</p>
@@ -288,9 +285,6 @@ export default function BillingPage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">Available plans</h2>
-            <p className="text-sm text-muted-foreground">
-              Upgrade when you need more stores, products, or premium layouts
-            </p>
           </div>
           <Badge variant="secondary" className="gap-1.5">
             <SmartphoneIcon className="size-3.5" />

@@ -29,8 +29,8 @@ export function AdminSidebar() {
   const normalizedPath = pathname.replace(/^\/(en|fr)/, "") || pathname
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-background">
-      <div className="border-b border-border p-4">
+    <aside className="flex w-56 shrink-0 flex-col border-r-0 bg-white">
+      <div className="border-b-0 p-4">
         <AppLogo size="sm" href="/dashboard" />
         <p className="mt-2 text-xs text-muted-foreground">{t("title")}</p>
       </div>
@@ -44,10 +44,10 @@ export function AdminSidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                "relative flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-transparent",
                 active
-                  ? "bg-primary/10 font-medium text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-primary/10 font-medium text-primary before:bg-primary [&_svg]:text-primary"
+                  : "text-muted-foreground hover:bg-slate-50 hover:text-foreground"
               )}
             >
               <Icon className="size-4" />
@@ -56,7 +56,7 @@ export function AdminSidebar() {
           )
         })}
       </nav>
-      <div className="border-t border-border p-3">
+      <div className="border-t-0 p-3">
         <Link
           href="/dashboard"
           className="text-sm text-muted-foreground hover:text-foreground"

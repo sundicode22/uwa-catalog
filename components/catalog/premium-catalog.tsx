@@ -22,6 +22,7 @@ import { ProductGridSkeleton } from "@/components/catalog/product-card-skeleton"
 import { useFeaturedProducts, usePublicProducts } from "@/hooks/use-products"
 import { formatMoney } from "@/lib/format"
 import { productHasOptions } from "@/lib/product-options"
+import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Product, StoreWithCategories } from "@/types/domain"
 
@@ -41,8 +42,10 @@ function ProductTile({
   const { addItem } = useCart()
   const [optionsOpen, setOptionsOpen] = useState(false)
   const hasOptions = productHasOptions(product)
+  const locked = product.locked === true
 
   function handleAddToCart() {
+    if (locked) return
     if (hasOptions) {
       setOptionsOpen(true)
       return
@@ -52,29 +55,46 @@ function ProductTile({
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-2xl bg-white">
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-2xl bg-white",
+          locked && "pointer-events-none select-none"
+        )}
+      >
         <ProductImageFrame
           product={product}
           storeSlug={storeSlug}
           storeCurrency={storeCurrency}
-          onOpenOptions={() => setOptionsOpen(true)}
+          onOpenOptions={() => {
+            if (!locked) setOptionsOpen(true)
+          }}
           onAddToCart={handleAddToCart}
+          locked={locked}
           className="aspect-4/5 w-full bg-neutral-100"
         />
-        {badge ? (
+        {badge && !locked ? (
           <span className="pointer-events-none absolute top-3 left-3 z-10 rounded-full bg-white px-2 py-1 text-xs tracking-wide uppercase">
             {badge}
           </span>
         ) : null}
+        {locked ? (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-md">
+            <span className="rounded-full bg-foreground/80 px-3 py-1 text-xs font-medium text-background">
+              Unavailable
+            </span>
+          </div>
+        ) : null}
       </div>
 
-      <ProductOptionsModal
-        product={product}
-        storeCurrency={storeCurrency}
-        open={optionsOpen}
-        onOpenChange={setOptionsOpen}
-        onConfirm={(p, selections) => addItem(p, selections)}
-      />
+      {!locked ? (
+        <ProductOptionsModal
+          product={product}
+          storeCurrency={storeCurrency}
+          open={optionsOpen}
+          onOpenChange={setOptionsOpen}
+          onConfirm={(p, selections) => addItem(p, selections)}
+        />
+      ) : null}
     </>
   )
 }

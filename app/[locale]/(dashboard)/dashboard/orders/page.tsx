@@ -42,14 +42,7 @@ export default function OrdersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold">Orders</h1>
-          {store.orderMode === "whatsapp" ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              Saved orders from WhatsApp and catalog checkout appear here.
-            </p>
-          ) : null}
-        </div>
+        <h1 className="text-lg font-semibold">Orders</h1>
         <Button
           type="button"
           variant="outline"
@@ -75,32 +68,6 @@ export default function OrdersPage() {
         </Button>
       </div>
 
-      <DataTableToolbar
-        search={search}
-        onSearchChange={(value) => {
-          setSearch(value)
-          setPage(1)
-        }}
-        searchPlaceholder="Search by customer or phone..."
-        filters={[
-          {
-            label: "Status",
-            value: statusFilter,
-            onChange: (value) => {
-              setStatusFilter(value)
-              setPage(1)
-            },
-            options: [
-              { label: "All statuses", value: "all" },
-              { label: "Pending", value: "pending" },
-              { label: "Confirmed", value: "confirmed" },
-              { label: "Fulfilled", value: "fulfilled" },
-              { label: "Cancelled", value: "cancelled" },
-            ],
-          },
-        ]}
-      />
-
       <DataTable
         columns={columns}
         data={orders}
@@ -108,6 +75,33 @@ export default function OrdersPage() {
         onPageChange={setPage}
         isLoading={isLoading}
         getRowId={(row) => row.id}
+        toolbar={
+          <DataTableToolbar
+            search={search}
+            onSearchChange={(value) => {
+              setSearch(value)
+              setPage(1)
+            }}
+            searchPlaceholder="Search by customer or phone..."
+            filters={[
+              {
+                label: "Status",
+                value: statusFilter,
+                onChange: (value) => {
+                  setStatusFilter(value)
+                  setPage(1)
+                },
+                options: [
+                  { label: "All statuses", value: "all" },
+                  { label: "Pending", value: "pending" },
+                  { label: "Confirmed", value: "confirmed" },
+                  { label: "Fulfilled", value: "fulfilled" },
+                  { label: "Cancelled", value: "cancelled" },
+                ],
+              },
+            ]}
+          />
+        }
       />
     </div>
   )

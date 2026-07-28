@@ -50,23 +50,12 @@ export default function StoresPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">Stores</h1>
-          <p className="text-sm text-muted-foreground">
-            All your catalogs — copy and share links with customers
-          </p>
-        </div>
+        <h1 className="text-lg font-semibold">Stores</h1>
         <Button onClick={() => setCreateOpen(true)}>
           <PlusIcon className="size-4" />
           Add store
         </Button>
       </div>
-
-      <DataTableToolbar
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search stores..."
-      />
 
       <DataTable
         columns={columns}
@@ -74,6 +63,13 @@ export default function StoresPage() {
         isLoading={isLoading}
         enableSelection={false}
         getRowId={(row) => row.id}
+        toolbar={
+          <DataTableToolbar
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search stores..."
+          />
+        }
       />
 
       <CreateStoreModal

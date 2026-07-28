@@ -364,7 +364,8 @@
     "whatsappGreeting": "Hi {storeName}, I have a question about your catalog.",
     "backToDashboard": "Back to dashboard",
     "previewBannerFull": "Preview mode — this catalog is not published yet.",
-    "unpublishedMessage": "This catalog is not live yet. Check back soon or contact the store owner."
+    "unpublishedMessage": "This catalog is not live yet. Check back soon or contact the store owner.",
+    "storeBlockedMessage": "This catalog is temporarily unavailable. The seller needs to renew their subscription to make it available again."
   },
   "metadata": {
     "siteTitle": "{appName} — Online Product Catalogs for Modern Sellers",

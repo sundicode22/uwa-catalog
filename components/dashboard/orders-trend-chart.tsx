@@ -31,7 +31,7 @@ export function OrdersTrendChart({
   currency = "USD",
 }: OrdersTrendChartProps) {
   return (
-    <Card className="border border-black/5 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+    <Card className="border-0 bg-white shadow-none">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">Orders (7 days)</CardTitle>
       </CardHeader>

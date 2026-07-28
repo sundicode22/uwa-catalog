@@ -47,13 +47,7 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold">Customers</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Customers are saved automatically when orders are placed. You can also
-            add or edit them here.
-          </p>
-        </div>
+        <h1 className="text-lg font-semibold">Customers</h1>
         <div className="flex gap-2">
           <Button
             type="button"
@@ -91,15 +85,6 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      <DataTableToolbar
-        search={search}
-        onSearchChange={(value) => {
-          setSearch(value)
-          setPage(1)
-        }}
-        searchPlaceholder="Search by name, phone, or email..."
-      />
-
       <DataTable
         columns={columns}
         data={customers}
@@ -107,6 +92,16 @@ export default function CustomersPage() {
         onPageChange={setPage}
         isLoading={isLoading}
         getRowId={(row) => row.id}
+        toolbar={
+          <DataTableToolbar
+            search={search}
+            onSearchChange={(value) => {
+              setSearch(value)
+              setPage(1)
+            }}
+            searchPlaceholder="Search by name, phone, or email..."
+          />
+        }
       />
 
       <CustomerFormModal

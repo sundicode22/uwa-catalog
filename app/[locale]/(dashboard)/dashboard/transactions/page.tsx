@@ -6,7 +6,6 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
 import { getTransactionColumns } from "@/components/data-table/columns/transaction-columns"
 import { useTransactions } from "@/hooks/use-transactions"
 import { useStore } from "@/hooks/use-store"
-import { Link } from "@/i18n/navigation"
 import type { StoreTransactionListItem } from "@/types/domain"
 
 export default function TransactionsPage() {
@@ -34,43 +33,7 @@ export default function TransactionsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold">Transactions</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Sales recorded from catalog and WhatsApp orders for {store.name}. Paid
-          checkout orders credit your{" "}
-          <Link
-            href="/dashboard/wallet"
-            className="text-primary underline-offset-4 hover:underline"
-          >
-            wallet
-          </Link>
-          .
-        </p>
       </div>
-
-      <DataTableToolbar
-        search={search}
-        onSearchChange={(value) => {
-          setSearch(value)
-          setPage(1)
-        }}
-        searchPlaceholder="Search by customer, reference, or method..."
-        filters={[
-          {
-            label: "Status",
-            value: statusFilter,
-            onChange: (value) => {
-              setStatusFilter(value)
-              setPage(1)
-            },
-            options: [
-              { label: "All statuses", value: "all" },
-              { label: "Pending", value: "pending" },
-              { label: "Completed", value: "completed" },
-              { label: "Voided", value: "voided" },
-            ],
-          },
-        ]}
-      />
 
       <DataTable
         columns={columns}
@@ -79,6 +42,32 @@ export default function TransactionsPage() {
         onPageChange={setPage}
         isLoading={isLoading}
         getRowId={(row) => row.id}
+        toolbar={
+          <DataTableToolbar
+            search={search}
+            onSearchChange={(value) => {
+              setSearch(value)
+              setPage(1)
+            }}
+            searchPlaceholder="Search by customer, reference, or method..."
+            filters={[
+              {
+                label: "Status",
+                value: statusFilter,
+                onChange: (value) => {
+                  setStatusFilter(value)
+                  setPage(1)
+                },
+                options: [
+                  { label: "All statuses", value: "all" },
+                  { label: "Pending", value: "pending" },
+                  { label: "Completed", value: "completed" },
+                  { label: "Voided", value: "voided" },
+                ],
+              },
+            ]}
+          />
+        }
       />
     </div>
   )

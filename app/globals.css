@@ -74,13 +74,13 @@
   --chart-4: oklch(0.68 0.12 195);
   --chart-5: oklch(0.45 0.12 52);
   --radius: 0.625rem;
-  --sidebar: oklch(0.965 0.038 55);
-  --sidebar-foreground: oklch(0.18 0.02 55);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.35 0.02 55);
   --sidebar-primary: oklch(0.62 0.19 52);
   --sidebar-primary-foreground: oklch(0.99 0.01 55);
-  --sidebar-accent: oklch(0.93 0.05 55);
+  --sidebar-accent: oklch(0.97 0.02 55);
   --sidebar-accent-foreground: oklch(0.22 0.06 52);
-  --sidebar-border: oklch(0.94 0.008 55);
+  --sidebar-border: oklch(0.93 0.01 55);
   --sidebar-ring: oklch(0.65 0.16 52);
 }
 
@@ -154,35 +154,23 @@
   .bg-brand-gradient-sidebar {
     background: linear-gradient(
       180deg,
-      oklch(0.97 0.05 55) 0%,
-      oklch(0.955 0.045 40) 45%,
-      oklch(0.94 0.04 55) 100%
+      oklch(1 0 0) 0%,
+      oklch(0.99 0.01 55) 100%
     );
   }
 
   .bg-sidebar-solid {
-    background: linear-gradient(
-      180deg,
-      oklch(0.975 0.045 55) 0%,
-      oklch(0.955 0.052 55) 50%,
-      oklch(0.94 0.058 48) 100%
-    );
+    background: #ffffff;
   }
 
   .dark .bg-sidebar-solid {
-    background: linear-gradient(
-      180deg,
-      oklch(0.21 0.035 55) 0%,
-      oklch(0.18 0.04 55) 55%,
-      oklch(0.16 0.038 55) 100%
-    );
+    background: oklch(0.19 0.02 55);
   }
 
   .dark .bg-brand-gradient-sidebar {
     background: linear-gradient(
       180deg,
       oklch(0.21 0.045 55) 0%,
-      oklch(0.19 0.04 40) 45%,
       oklch(0.17 0.035 55) 100%
     );
   }

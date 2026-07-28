@@ -27,7 +27,7 @@ export function StatCard({
             {label}
           </CardTitle>
           {Icon ? (
-            <div className="rounded-lg bg-[#F9FAFB] p-2">
+            <div className="rounded-lg bg-[#F1F3F5] p-2">
               <Icon className="size-4 text-muted-foreground" />
             </div>
           ) : null}

@@ -30,9 +30,6 @@ export default function AdminOverviewPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold">{t("platformOverview")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("platformOverviewDescription")}
-        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -59,7 +56,7 @@ export default function AdminOverviewPage() {
       </div>
 
       {data.ordersTrend.length > 0 ? (
-        <div className="rounded-xl border border-black/5 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <div className="rounded-xl border-0 bg-white p-4 shadow-none">
           <h2 className="mb-3 text-sm font-medium">Orders trend (7d)</h2>
           <div className="flex items-end gap-2">
             {data.ordersTrend.map((point) => (

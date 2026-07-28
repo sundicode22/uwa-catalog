@@ -8,7 +8,9 @@ import {
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { StoreProvider } from "@/components/providers/store-provider"
+import { DASHBOARD_CANVAS_BG } from "@/lib/dashboard-ui"
 import { buildPrivateMetadata } from "@/lib/seo/metadata"
+import { cn } from "@/lib/utils"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata")
@@ -25,7 +27,7 @@ export default async function DashboardLayout({
       <StoreProvider>
         <SidebarProvider defaultOpen={false}>
           <AppSidebar />
-          <SidebarInset className="bg-[#F9FAFB]">
+          <SidebarInset className={cn(DASHBOARD_CANVAS_BG)}>
             <DashboardHeader />
             <div className="flex flex-1 flex-col gap-5 p-4 pt-5 sm:p-6">
               {children}

@@ -18,6 +18,10 @@ import { storeTransactionService } from "./store-transaction.service"
 import { discountCodeService } from "./discount-code.service"
 import { notifyMerchantOnNewOrder } from "./order-notification.service"
 import { storeCheckoutService } from "./store-checkout.service"
+import {
+  getCatalogPlanAccess,
+  isProductLocked,
+} from "./catalog-access.service"
 import { serializeOrder } from "@/server/lib/serializers"
 import { notFound, forbidden, badRequest } from "@/server/elysia/plugins/errors"
 import type {
@@ -340,6 +344,14 @@ export const productService = {
     const productIds = items.map((row) => row.id)
     const countsMap = await productOptionsService.getCounts(productIds)
 
+    const isPublic = productService.isPublicListQuery(query)
+    let unlockedProductIds: Set<string> | null = null
+    if (isPublic) {
+      const store = await storeService.getById(storeId)
+      const access = await getCatalogPlanAccess(store.id, store.ownerId)
+      unlockedProductIds = access.unlockedProductIds
+    }
+
     return {
       items: items.map((row) => ({
         id: row.id,
@@ -360,6 +372,9 @@ export const productService = {
         isFeatured: row.isFeatured,
         inventory: row.inventory,
         sortOrder: row.sortOrder,
+        locked: unlockedProductIds
+          ? !unlockedProductIds.has(row.id)
+          : false,
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
         category: row.category,
@@ -633,6 +648,16 @@ export const orderService = {
       if (!product.isActive) badRequest("One or more products are no longer available")
       if (product.inventory !== null && product.inventory < quantity) {
         badRequest(`Insufficient stock for ${product.name}`)
+      }
+    }
+
+    const access = await getCatalogPlanAccess(store.id, store.ownerId)
+    if (!access.storeAllowed) {
+      badRequest("This store is temporarily unavailable. The seller needs to renew their plan.")
+    }
+    for (const productId of quantityByProduct.keys()) {
+      if (isProductLocked(productId, access)) {
+        badRequest("One or more products are temporarily unavailable due to plan limits.")
       }
     }
 

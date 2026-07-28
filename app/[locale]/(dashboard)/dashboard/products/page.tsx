@@ -94,58 +94,6 @@ export default function ProductsPage() {
         </Button>
       </div>
 
-      <DataTableToolbar
-        search={search}
-        onSearchChange={(value) => {
-          setSearch(value)
-          setPage(1)
-        }}
-        searchPlaceholder="Search products..."
-        filters={[
-          {
-            label: "Category",
-            value: categoryFilter,
-            onChange: (value) => {
-              setCategoryFilter(value)
-              setPage(1)
-            },
-            options: [
-              { label: "All categories", value: "all" },
-              ...(categories ?? []).map((c) => ({
-                label: c.name,
-                value: c.id,
-              })),
-            ],
-          },
-          {
-            label: "Status",
-            value: statusFilter,
-            onChange: (value) => {
-              setStatusFilter(value)
-              setPage(1)
-            },
-            options: [
-              { label: "All statuses", value: "all" },
-              { label: "Active", value: "active" },
-              { label: "Inactive", value: "inactive" },
-            ],
-          },
-          {
-            label: "Featured",
-            value: featuredFilter,
-            onChange: (value) => {
-              setFeaturedFilter(value)
-              setPage(1)
-            },
-            options: [
-              { label: "All products", value: "all" },
-              { label: "Featured", value: "featured" },
-              { label: "Not featured", value: "not-featured" },
-            ],
-          },
-        ]}
-      />
-
       <DataTable
         columns={columns}
         data={products}
@@ -153,6 +101,59 @@ export default function ProductsPage() {
         onPageChange={setPage}
         isLoading={isLoading}
         getRowId={(row) => row.id}
+        toolbar={
+          <DataTableToolbar
+            search={search}
+            onSearchChange={(value) => {
+              setSearch(value)
+              setPage(1)
+            }}
+            searchPlaceholder="Search products..."
+            filters={[
+              {
+                label: "Category",
+                value: categoryFilter,
+                onChange: (value) => {
+                  setCategoryFilter(value)
+                  setPage(1)
+                },
+                options: [
+                  { label: "All categories", value: "all" },
+                  ...(categories ?? []).map((c) => ({
+                    label: c.name,
+                    value: c.id,
+                  })),
+                ],
+              },
+              {
+                label: "Status",
+                value: statusFilter,
+                onChange: (value) => {
+                  setStatusFilter(value)
+                  setPage(1)
+                },
+                options: [
+                  { label: "All statuses", value: "all" },
+                  { label: "Active", value: "active" },
+                  { label: "Inactive", value: "inactive" },
+                ],
+              },
+              {
+                label: "Featured",
+                value: featuredFilter,
+                onChange: (value) => {
+                  setFeaturedFilter(value)
+                  setPage(1)
+                },
+                options: [
+                  { label: "All products", value: "all" },
+                  { label: "Featured", value: "featured" },
+                  { label: "Not featured", value: "not-featured" },
+                ],
+              },
+            ]}
+          />
+        }
       />
 
       <ProductFormModal

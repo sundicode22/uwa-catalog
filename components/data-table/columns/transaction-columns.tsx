@@ -25,12 +25,18 @@ export function getTransactionColumns(currency = "USD"): ColumnDef<StoreTransact
     createSelectColumn<StoreTransactionListItem>(),
     {
       accessorKey: "customerName",
-      header: "Customer",
+      header: "Name",
       cell: ({ row }) => (
-        <div>
-          <p className="font-medium">{row.original.customerName}</p>
-          <p className="text-xs text-muted-foreground">{row.original.customerPhone}</p>
-        </div>
+        <span className="font-medium">{row.original.customerName}</span>
+      ),
+    },
+    {
+      accessorKey: "customerPhone",
+      header: "Phone",
+      cell: ({ row }) => (
+        <span className="tabular-nums text-muted-foreground">
+          {row.original.customerPhone || "—"}
+        </span>
       ),
     },
     {

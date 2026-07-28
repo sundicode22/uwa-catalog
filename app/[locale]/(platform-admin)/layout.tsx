@@ -3,8 +3,10 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { hasPlatformAdminRole } from "@/lib/auth/platform-admin-role"
+import { DASHBOARD_CANVAS_BG } from "@/lib/dashboard-ui"
 import { buildPrivateMetadata } from "@/lib/seo/metadata"
 import { Providers } from "@/app/providers"
+import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = buildPrivateMetadata("System admin")
 
@@ -23,7 +25,7 @@ export default async function PlatformAdminLayout({
 
   return (
     <Providers>
-      <div className="flex min-h-screen bg-[#F9FAFB]">
+      <div className={cn("flex min-h-screen", DASHBOARD_CANVAS_BG)}>
         <AdminSidebar />
         <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
       </div>

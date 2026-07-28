@@ -33,13 +33,14 @@ export function DataTableToolbar({
   filters = [],
 }: DataTableToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+    <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
       {onSearchChange ? (
         <SearchInput
           placeholder={searchPlaceholder}
           value={search ?? ""}
           onChange={(e) => onSearchChange(e.target.value)}
           wrapperClassName="max-w-sm w-full"
+          className="h-9 rounded-lg border-slate-200/70 bg-[#FAFBFC] shadow-none focus-visible:border-slate-300"
         />
       ) : null}
       {filters.map((filter) => (
@@ -48,7 +49,7 @@ export function DataTableToolbar({
           value={filter.value}
           onValueChange={filter.onChange}
         >
-          <SelectTrigger className="w-full sm:w-44">
+          <SelectTrigger className="h-9 w-full rounded-lg border-slate-200/70 bg-[#FAFBFC] shadow-none sm:w-44">
             <SelectValue placeholder={filter.label} />
           </SelectTrigger>
           <SelectContent>

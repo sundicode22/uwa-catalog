@@ -132,6 +132,7 @@ interface ProductImageFrameProps {
   className?: string
   imageClassName?: string
   showDetails?: boolean
+  locked?: boolean
 }
 
 export function ProductImageFrame({
@@ -143,6 +144,7 @@ export function ProductImageFrame({
   className,
   imageClassName,
   showDetails = true,
+  locked = false,
 }: ProductImageFrameProps) {
   const image = product.images?.[0]?.url
 
@@ -156,21 +158,24 @@ export function ProductImageFrame({
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
           className={cn(
             "object-cover transition-transform duration-300 [@media(hover:hover)]:group-hover/card:scale-105",
+            locked && "scale-105 blur-md",
             imageClassName
           )}
         />
       ) : (
-        <div className="size-full bg-muted" />
+        <div className={cn("size-full bg-muted", locked && "blur-md")} />
       )}
 
-      <ProductHoverOverlay
-        product={product}
-        storeSlug={storeSlug}
-        storeCurrency={storeCurrency}
-        onOpenOptions={onOpenOptions}
-        onAddToCart={onAddToCart}
-        showDetails={showDetails}
-      />
+      {!locked ? (
+        <ProductHoverOverlay
+          product={product}
+          storeSlug={storeSlug}
+          storeCurrency={storeCurrency}
+          onOpenOptions={onOpenOptions}
+          onAddToCart={onAddToCart}
+          showDetails={showDetails}
+        />
+      ) : null}
     </div>
   )
 }

@@ -364,7 +364,8 @@
     "whatsappGreeting": "Bonjour {storeName}, j'ai une question sur votre catalogue.",
     "backToDashboard": "Retour au tableau de bord",
     "previewBannerFull": "Mode aperçu — ce catalogue n'est pas encore publié.",
-    "unpublishedMessage": "Ce catalogue n'est pas encore en ligne. Revenez bientôt ou contactez le propriétaire."
+    "unpublishedMessage": "Ce catalogue n'est pas encore en ligne. Revenez bientôt ou contactez le propriétaire.",
+    "storeBlockedMessage": "Ce catalogue est temporairement indisponible. Le vendeur doit renouveler son abonnement pour le rendre à nouveau accessible."
   },
   "metadata": {
     "siteTitle": "{appName} — Catalogues produits en ligne pour vendeurs modernes",
